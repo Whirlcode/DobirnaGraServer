@@ -1,0 +1,6 @@
+@base = http://localhost:8001
+
+### Get App Info
+GET {{base}}/
+Accept: application/json
+###

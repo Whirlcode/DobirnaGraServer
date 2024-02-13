@@ -6,6 +6,8 @@ namespace DobirnaGraServer.Game
 	{
 		private List<WeakReference> _users = new();
 
+		public int Count => _users.Count;
+
 		public void AddUser(UserInstance user)
 		{
 			_users.Add(new WeakReference(user));

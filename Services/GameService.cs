@@ -10,11 +10,19 @@ namespace DobirnaGraServer.Services
 
 		private IDictionary<Guid, LobbyInstance> Lobbies = new Dictionary<Guid, LobbyInstance>();
 
+		private readonly object _lockLobbies = new();
+
 		public void CreateLobby(UserInstance creator, string name)
 		{
 			LobbyInstance instance = new();
 			instance.JoinUser(creator);
-			Lobbies.Add(instance.Id, instance);
+
+			lock (_lockLobbies)
+			{
+				Lobbies.Add(instance.Id, instance);
+			}
+
+			instance.OnNumberUserChanged += OnNumberUserChanged;
 		}
 
 		public void JoinLobby(UserInstance user, string inviteCode)
@@ -29,9 +37,24 @@ namespace DobirnaGraServer.Services
 			}
 		}
 
-		public void LeaveLobby(UserInstance user)
+		private void OnNumberUserChanged(LobbyInstance lobby)
 		{
-			user.CurrentLobby?.LeaveUser(user);
+			if (lobby.NumberUser <= 0)
+			{
+				DestroyLobby(lobby);
+			}
+		}
+
+		private void DestroyLobby(LobbyInstance lobby)
+		{
+			lobby.OnNumberUserChanged -= OnNumberUserChanged;
+
+			lock (_lockLobbies)
+			{
+				Lobbies.Remove(lobby.Id);
+			}
+
+			lobby.Dispose();
 		}
 	}
 }

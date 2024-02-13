@@ -4,6 +4,8 @@ namespace DobirnaGraServer.Game
 {
 	public class UserInstance(HubCallerContext context)
 	{
+		public string ConnectionId => context.ConnectionId;
+
 		private WeakReference WeakContext { get; set; } = new(context);
 
 		private HubCallerContext? Context => WeakContext.IsAlive ? WeakContext.Target as HubCallerContext : null;
@@ -19,12 +21,18 @@ namespace DobirnaGraServer.Game
 					throw new InvalidOperationException("User is dead!");
 				if (value != null && !value.HasUser(this))
 					throw new InvalidOperationException("The user is not in the group.");
+
+				if (value == null && Context.Items[nameof(CurrentLobby)] is LobbyInstance current && current.HasUser(this))
+					throw new InvalidOperationException("The user is still in the group.");
+
 				Context.Items[nameof(CurrentLobby)] = value;
 			}
 		}
 
 		public void Abandon()
 		{
+			CurrentLobby?.LeaveUser(this);
+			CurrentLobby = null;
 			WeakContext.Target = null;
 		}
 	}

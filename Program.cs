@@ -19,6 +19,8 @@ namespace DobirnaGraServer
 			builder.Services.AddSwaggerGen();
 
 			builder.Services.AddSingleton<UserService>();
+			builder.Services.AddSingleton<GameService>();
+
 			var app = builder.Build();
 
 			// Configure the HTTP request pipeline.

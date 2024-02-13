@@ -1,5 +1,6 @@
 
 using DobirnaGraServer.Hubs;
+using DobirnaGraServer.Services;
 
 namespace DobirnaGraServer
 {
@@ -17,6 +18,7 @@ namespace DobirnaGraServer
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
+			builder.Services.AddSingleton<UserService>();
 			var app = builder.Build();
 
 			// Configure the HTTP request pipeline.

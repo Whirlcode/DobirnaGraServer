@@ -42,16 +42,16 @@ namespace DobirnaGraServer.Hubs
 			return base.OnDisconnectedAsync(exception);
 		}
 
-		public Task CreateLobby(CreateLobbyRequest request, [FromServices] GameService game)
+		public Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			game.CreateLobby(Me, request.Name);
+			game.CreateLobby(Me, actionMessage.Name);
 
 			return Task.CompletedTask;
 		}
 
-		public Task JoinLobby(JoinLobbyRequest request, [FromServices] GameService game)
+		public Task JoinLobby(JoinLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			game.JoinLobby(Me, request.InviteCode);
+			game.JoinLobby(Me, actionMessage.InviteCode);
 
 			return Task.CompletedTask;
 		}

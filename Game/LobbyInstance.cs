@@ -19,9 +19,12 @@ namespace DobirnaGraServer.Game
 
 		public int NumberUser => Users.Count;
 
-		public LobbyInstance(IHubContext<GameHub> hubContext)
+		public string Name { get; init; }
+
+		public LobbyInstance(IHubContext<GameHub> hubContext, string name)
 		{
 			_hubContext = hubContext;
+			Name = name;
 
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
@@ -51,6 +54,9 @@ namespace DobirnaGraServer.Game
 
 		public async Task JoinUserAsync(UserInstance user)
 		{
+			if (user.CurrentLobby is {} currentLobby)
+				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
+
 			Users.AddUser(user);
 			user.CurrentLobby = this;
 

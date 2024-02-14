@@ -50,7 +50,7 @@ namespace DobirnaGraServer.Hubs
 		private Task HandleServerException(Exception e)
 		{
 			_logger.LogError(e, "Failed RPC");
-			return Clients.Caller.OnServerError(e.Message);
+			return Clients.Caller.OnServerError($"Failed RPC: {e.Message}\n\n Stack Trace:\n{e.StackTrace}");
 		}
 
 		public async Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)

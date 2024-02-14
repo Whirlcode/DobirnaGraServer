@@ -12,7 +12,7 @@ namespace DobirnaGraServer.Services
 
 		public async Task CreateLobbyAsync(UserInstance creator, string name)
 		{
-			LobbyInstance instance = new(hubContext);
+			LobbyInstance instance = new(hubContext, name);
 
 			await instance.JoinUserAsync(creator);
 

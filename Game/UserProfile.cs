@@ -1,31 +1,49 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using DobirnaGraServer.Hubs;
+using DobirnaGraServer.Models.MessageTypes;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public class UserProfile(HubCallerContext context)
+	public class UserProfile : IProfile
 	{
-		public string ConnectionId => context.ConnectionId;
+		private readonly string _connectionId;
 
-		private WeakReference WeakContext { get; set; } = new(context);
+		public string ConnectionId => _connectionId;
 
-		private HubCallerContext? Context => WeakContext.IsAlive ? WeakContext.Target as HubCallerContext : null;
+		private readonly WeakReference _weakContext;
 
-		public bool IsValid => Context != null;
+		private HubCallerContext? UserContext => _weakContext.IsAlive ? _weakContext.Target as HubCallerContext : null;
 
+		private readonly IHubContext<GameHub, IGameClient> _hubContext;
+
+		public Guid Id { get; private init; } = new Guid();
+
+		public string Name { get; set; } = string.Empty;
+
+		private Lobby? _currentLobby;
 		public Lobby? CurrentLobby
 		{
-			get => (Lobby?)Context?.Items[nameof(CurrentLobby)];
+			get => _currentLobby;
 			set
 			{
-				if (Context == null)
+				if (UserContext == null)
 					throw new InvalidOperationException("User is dead!");
 				if (value != null && !value.HasUser(this))
 					throw new InvalidOperationException("The user is not in the group.");
-				if (value == null && Context.Items[nameof(CurrentLobby)] is Lobby current && current.HasUser(this))
+				if (value == null && _currentLobby != null && _currentLobby.HasUser(this))
 					throw new InvalidOperationException("The user is still in the group.");
 
-				Context.Items[nameof(CurrentLobby)] = value;
+				_currentLobby = value;
+
+				NotifyOnProfileChanged();
 			}
+		}
+
+		public UserProfile(HubCallerContext callerContext, IHubContext<GameHub, IGameClient> hubContext)
+		{
+			_connectionId = callerContext.ConnectionId;
+			_weakContext = new WeakReference(callerContext);
+			_hubContext = hubContext;
 		}
 
 		public async Task AbandonAsync()
@@ -35,7 +53,12 @@ namespace DobirnaGraServer.Game
 				await CurrentLobby.LeaveUserAsync(this, default);
 			}
 			CurrentLobby = null;
-			WeakContext.Target = null;
+			_weakContext.Target = null;
+		}
+
+		public async void NotifyOnProfileChanged()
+		{
+			await _hubContext.Clients.Clients(_connectionId).OnProfileChanged(UserInfo.Make(this));
 		}
 	}
 }

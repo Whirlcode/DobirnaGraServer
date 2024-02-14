@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Services
 {
-	public class GameService(IHubContext<GameHub> hubContext)
+	public class GameService(IHubContext<GameHub, IGameClient> hubContext)
 	{
 		private IDictionary<Guid, Lobby> Lobbies = new Dictionary<Guid, Lobby>();
 

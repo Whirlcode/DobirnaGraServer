@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Services
 {
-	public class ProfileService(IHubContext<GameHub> hubContext)
+	public class ProfileService(IHubContext<GameHub, IGameClient> hubContext)
 	{
 		private readonly Dictionary<string, UserProfile> _persistentData = new();
 
 		public Task<UserProfile> RegisterAsync(HubCallerContext caller)
 		{
-			UserProfile profile = new(caller);
+			UserProfile profile = new(caller, hubContext);
 			_persistentData.Add(caller.ConnectionId, profile);
 			return Task.FromResult(profile);
 		}

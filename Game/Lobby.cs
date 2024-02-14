@@ -1,10 +1,10 @@
 ﻿using DobirnaGraServer.Hubs;
-using DobirnaGraServer.Models.MessageTypes;
+using DobirnaGraServer.Utils;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public sealed class Lobby : IDisposable, IAsyncDisposable
+    public sealed class Lobby : IDisposable, IAsyncDisposable
 	{
 		public delegate void EventNumberUserChanged(Lobby lobby);
 
@@ -16,7 +16,7 @@ namespace DobirnaGraServer.Game
 
 		private InviteCode InviteCode { get; init; }
 
-		private UserList Users { get; init; }
+		private WeakList<UserProfile> Users { get; init; }
 
 		public int NumberUser => Users.Count;
 
@@ -29,7 +29,7 @@ namespace DobirnaGraServer.Game
 
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
-			Users = new UserList();
+			Users = new WeakList<UserProfile>();
 		}
 
 		~Lobby()
@@ -58,7 +58,7 @@ namespace DobirnaGraServer.Game
 			if (user.CurrentLobby is {} currentLobby)
 				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
 
-			Users.AddUser(user);
+			Users.Add(user);
 			user.CurrentLobby = this;
 
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
@@ -68,7 +68,7 @@ namespace DobirnaGraServer.Game
 
 		public async Task LeaveUserAsync(UserProfile user, CancellationToken ct)
 		{
-			Users.RemoveUser(user);
+			Users.Remove(user);
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);

@@ -12,6 +12,11 @@ namespace DobirnaGraServer.Models.MessageTypes
 		public required string Name { get; init; }
 	}
 
+	public class UpdateProfileActionMessage
+	{
+		public string? Name { get; init; }
+	}
+
 	public class UserInfo
 	{
 		public required Guid Id { get; init; }

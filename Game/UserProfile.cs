@@ -18,7 +18,18 @@ namespace DobirnaGraServer.Game
 
 		public Guid Id { get; private init; } = Guid.NewGuid();
 
-		public string Name { get; set; } = string.Empty;
+
+		private string _name = string.Empty;
+
+		public string Name
+		{
+			get => _name;
+			set
+			{
+				_name = value;
+				NotifyOnProfileChanged();
+			}
+		}
 
 		private Lobby? _currentLobby;
 		public Lobby? CurrentLobby

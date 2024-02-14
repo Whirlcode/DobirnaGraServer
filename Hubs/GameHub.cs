@@ -45,6 +45,21 @@ namespace DobirnaGraServer.Hubs
 			return Clients.Caller.OnServerError($"Failed RPC: {e.Message}\n\n Stack Trace:\n{e.StackTrace}");
 		}
 
+		public async Task UpdateProfile(UpdateProfileActionMessage actionMessage)
+		{
+			try
+			{
+				if (actionMessage.Name != null)
+				{
+					Me.Name = actionMessage.Name;
+				}
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
 		public async Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
 			try
@@ -55,7 +70,6 @@ namespace DobirnaGraServer.Hubs
 			{
 				await HandleServerException(e);
 			}
-			
 		}
 
 		public async Task JoinLobby(JoinLobbyActionMessage actionMessage, [FromServices] GameService game)

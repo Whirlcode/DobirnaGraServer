@@ -16,7 +16,7 @@ namespace DobirnaGraServer.Game
 
 		private readonly IHubContext<GameHub, IGameClient> _hubContext;
 
-		public Guid Id { get; private init; } = new Guid();
+		public Guid Id { get; private init; } = Guid.NewGuid();
 
 		public string Name { get; set; } = string.Empty;
 

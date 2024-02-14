@@ -9,11 +9,15 @@ namespace DobirnaGraServer.Hubs
 	public interface IGameClient
 	{
 		Task OnGameStateChanged(GameStateMessage state);
+
+		Task OnServerError(string err);
 	}
 
 	public class GameHub : Hub<IGameClient>
 	{
 		private readonly UserService _userService;
+
+		private readonly ILogger<GameHub> _logger;
 
 		public UserInstance Me
 		{
@@ -21,9 +25,10 @@ namespace DobirnaGraServer.Hubs
 			set => Context.Items.Add(nameof(UserInstance), value);
 		}
 
-		public GameHub(UserService userService, GameService gameService)
+		public GameHub(UserService userService, GameService gameService, ILogger<GameHub> logger)
 		{
 			_userService = userService;
+			_logger = logger;
 		}
 
 		public override async Task OnConnectedAsync()
@@ -42,14 +47,35 @@ namespace DobirnaGraServer.Hubs
 			await base.OnDisconnectedAsync(exception);
 		}
 
+		private Task HandleServerException(Exception e)
+		{
+			_logger.LogError(e, "Failed RPC");
+			return Clients.Caller.OnServerError(e.Message);
+		}
+
 		public async Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			await game.CreateLobbyAsync(Me, actionMessage.Name);
+			try
+			{
+				await game.CreateLobbyAsync(Me, actionMessage.Name);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+			
 		}
 
 		public async Task JoinLobby(JoinLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			await game.JoinLobbyAsync(Me, actionMessage.InviteCode);
+			try
+			{
+				await game.JoinLobbyAsync(Me, actionMessage.InviteCode);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
 		}
 
 		public Task TryTake()

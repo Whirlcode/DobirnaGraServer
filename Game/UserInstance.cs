@@ -29,9 +29,12 @@ namespace DobirnaGraServer.Game
 			}
 		}
 
-		public void Abandon()
+		public async Task AbandonAsync()
 		{
-			CurrentLobby?.LeaveUser(this);
+			if (CurrentLobby != null)
+			{
+				await CurrentLobby.LeaveUserAsync(this);
+			}
 			CurrentLobby = null;
 			WeakContext.Target = null;
 		}

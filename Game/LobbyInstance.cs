@@ -1,6 +1,9 @@
-﻿namespace DobirnaGraServer.Game
+﻿using DobirnaGraServer.Hubs;
+using Microsoft.AspNetCore.SignalR;
+
+namespace DobirnaGraServer.Game
 {
-	public sealed class LobbyInstance : IDisposable
+	public sealed class LobbyInstance : IDisposable, IAsyncDisposable
 	{
 		public delegate void EventNumberUserChanged(LobbyInstance lobby);
 
@@ -8,14 +11,18 @@
 
 		public Guid Id { get; init; }
 
-		public InviteCode InviteCode { get; init; }
+		private readonly IHubContext<GameHub> _hubContext;
 
-		public UserList Users { get; init; }
+		private InviteCode InviteCode { get; init; }
+
+		private UserList Users { get; init; }
 
 		public int NumberUser => Users.Count;
 
-		public LobbyInstance()
+		public LobbyInstance(IHubContext<GameHub> hubContext)
 		{
+			_hubContext = hubContext;
+
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
 			Users = new UserList();
@@ -28,8 +35,13 @@
 
 		public void Dispose()
 		{
-			KickAllUsers();
+			DisposeAsync().GetAwaiter().GetResult();
+		}
+
+		public async ValueTask DisposeAsync()
+		{
 			InviteCode.Dispose();
+			await KickAllUsersAsync();
 		}
 
 		public bool HasUser(UserInstance user)
@@ -37,30 +49,37 @@
 			return Users.Any(e => e == user);
 		}
 
-		public void JoinUser(UserInstance user)
+		public async Task JoinUserAsync(UserInstance user)
 		{
 			Users.AddUser(user);
 			user.CurrentLobby = this;
 
+			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString());
+
 			OnNumberUserChanged?.Invoke(this);
 		}
 
-		public void LeaveUser(UserInstance user)
+		public async Task LeaveUserAsync(UserInstance user)
 		{
 			Users.RemoveUser(user);
 			user.CurrentLobby = null;
 
+			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString());
+
 			OnNumberUserChanged?.Invoke(this);
 		}
 
-		private void KickAllUsers()
+		public async Task KickAllUsersAsync()
 		{
 			var users = Users.ToArray();
 			Users.Clear();
 			foreach (var user in users)
 			{
+				await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString());
 				user.CurrentLobby = null;
 			}
+
+			OnNumberUserChanged?.Invoke(this);
 		}
 	}
 }

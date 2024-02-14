@@ -8,7 +8,7 @@ namespace DobirnaGraServer.Hubs
 {
 	public interface IGameClient
 	{
-		Task OnGameStateChanged(GameState state);
+		Task OnGameStateChanged(GameStateMessage state);
 	}
 
 	public class GameHub : Hub<IGameClient>
@@ -26,34 +26,30 @@ namespace DobirnaGraServer.Hubs
 			_userService = userService;
 		}
 
-		public override Task OnConnectedAsync()
+		public override async Task OnConnectedAsync()
 		{
-			Me = _userService.Register(Context);
+			Me = await _userService.RegisterAsync(Context);
 
-			return base.OnConnectedAsync();
+			await base.OnConnectedAsync();
 		}
 
-		public override Task OnDisconnectedAsync(Exception? exception)
+		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
-			_userService.Unregister(Context);
+			await _userService.UnregisterAsync(Context);
 
 			Context.Items.Clear();
 
-			return base.OnDisconnectedAsync(exception);
+			await base.OnDisconnectedAsync(exception);
 		}
 
-		public Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)
+		public async Task CreateLobby(CreateLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			game.CreateLobby(Me, actionMessage.Name);
-
-			return Task.CompletedTask;
+			await game.CreateLobbyAsync(Me, actionMessage.Name);
 		}
 
-		public Task JoinLobby(JoinLobbyActionMessage actionMessage, [FromServices] GameService game)
+		public async Task JoinLobby(JoinLobbyActionMessage actionMessage, [FromServices] GameService game)
 		{
-			game.JoinLobby(Me, actionMessage.InviteCode);
-
-			return Task.CompletedTask;
+			await game.JoinLobbyAsync(Me, actionMessage.InviteCode);
 		}
 
 		public Task TryTake()

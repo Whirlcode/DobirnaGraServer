@@ -7,17 +7,20 @@ namespace DobirnaGraServer.Services
 	{
 		private Dictionary<string, UserInstance> persistentData = new();
 
-		public UserInstance Register(HubCallerContext caller)
+		public Task<UserInstance> RegisterAsync(HubCallerContext caller)
 		{
 			UserInstance instance = new(caller);
 			persistentData.Add(caller.ConnectionId, instance);
-			return instance;
+			return Task.FromResult(instance);
 		}
 
-		public void Unregister(HubCallerContext caller)
+		public async Task UnregisterAsync(HubCallerContext caller)
 		{
 			persistentData.Remove(caller.ConnectionId, out UserInstance? instance);
-			instance?.Abandon();
+			if (instance != null)
+			{
+				await instance.AbandonAsync();
+			}
 		}
 	}
 }

@@ -6,15 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Hubs
 {
-	public interface IGameClient
-	{
-		Task OnProfileChanged(UserInfo info);
-
-		Task OnLobbyStateChanged(LobbyInfo info);
-
-		Task OnServerError(string err);
-	}
-
+	
 	public class GameHub : Hub<IGameClient>
 	{
 		private readonly ProfileService _profileService;
@@ -35,16 +27,14 @@ namespace DobirnaGraServer.Hubs
 
 		public override async Task OnConnectedAsync()
 		{
-			Me = await _profileService.RegisterAsync(Context);
-
 			await base.OnConnectedAsync();
+
+			Me = await _profileService.RegisterAsync(Context);
 		}
 
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
 			await _profileService.UnregisterAsync(Context);
-
-			Context.Items.Clear();
 
 			await base.OnDisconnectedAsync(exception);
 		}

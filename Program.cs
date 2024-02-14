@@ -18,7 +18,7 @@ namespace DobirnaGraServer
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			builder.Services.AddSingleton<UserService>();
+			builder.Services.AddSingleton<ProfileService>();
 			builder.Services.AddSingleton<GameService>();
 
 			var app = builder.Build();

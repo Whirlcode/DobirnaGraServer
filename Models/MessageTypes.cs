@@ -1,4 +1,4 @@
-﻿namespace DobirnaGraServer.Models.RequestTypes
+﻿namespace DobirnaGraServer.Models.MessageTypes
 {
 	public class JoinLobbyActionMessage
 	{
@@ -17,11 +17,11 @@
 		public required string Name { get; init; }
 	}
 
-	public class GameStateMessage
+	public class LobbyInfo
 	{
-		public required Guid Me { get; init; }
+		public required Guid LobbyId { get; init; }
 
-		public Guid? LobbyId { get; init; }
+		public required string Name { get; init; }
 
 		public string? InviteCode { get; init; }
 

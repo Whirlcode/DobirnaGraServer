@@ -6,13 +6,13 @@ namespace DobirnaGraServer.Services
 {
 	public class GameService(IHubContext<GameHub> hubContext)
 	{
-		private IDictionary<Guid, LobbyInstance> Lobbies = new Dictionary<Guid, LobbyInstance>();
+		private IDictionary<Guid, Lobby> Lobbies = new Dictionary<Guid, Lobby>();
 
 		private readonly object _lockLobbies = new();
 
-		public async Task CreateLobbyAsync(UserInstance creator, string name, CancellationToken ct)
+		public async Task CreateLobbyAsync(UserProfile creator, string name, CancellationToken ct)
 		{
-			LobbyInstance instance = new(hubContext, name);
+			Lobby instance = new(hubContext, name);
 
 			await instance.JoinUserAsync(creator, ct);
 
@@ -24,9 +24,9 @@ namespace DobirnaGraServer.Services
 			instance.OnNumberUserChanged += OnNumberUserChanged;
 		}
 
-		public async Task JoinLobbyAsync(UserInstance user, string inviteCode, CancellationToken ct)
+		public async Task JoinLobbyAsync(UserProfile user, string inviteCode, CancellationToken ct)
 		{
-			if (InviteCode.FindId(inviteCode, out Guid lobbyId) && Lobbies.TryGetValue(lobbyId, out LobbyInstance? lobby))
+			if (InviteCode.FindId(inviteCode, out Guid lobbyId) && Lobbies.TryGetValue(lobbyId, out Lobby? lobby))
 			{
 				await lobby.JoinUserAsync(user, ct);
 			}
@@ -36,7 +36,7 @@ namespace DobirnaGraServer.Services
 			}
 		}
 
-		private void OnNumberUserChanged(LobbyInstance lobby)
+		private void OnNumberUserChanged(Lobby lobby)
 		{
 			if (lobby.NumberUser <= 0)
 			{
@@ -44,7 +44,7 @@ namespace DobirnaGraServer.Services
 			}
 		}
 
-		private async void DestroyLobby(LobbyInstance lobby)
+		private async void DestroyLobby(Lobby lobby)
 		{
 			lobby.OnNumberUserChanged -= OnNumberUserChanged;
 

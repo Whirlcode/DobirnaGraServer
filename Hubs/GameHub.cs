@@ -1,5 +1,5 @@
 ﻿using DobirnaGraServer.Game;
-using DobirnaGraServer.Models.RequestTypes;
+using DobirnaGraServer.Models.MessageTypes;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -8,39 +8,41 @@ namespace DobirnaGraServer.Hubs
 {
 	public interface IGameClient
 	{
-		Task OnGameStateChanged(GameStateMessage state);
+		Task OnProfileChanged(UserInfo info);
+
+		Task OnLobbyStateChanged(LobbyInfo info);
 
 		Task OnServerError(string err);
 	}
 
 	public class GameHub : Hub<IGameClient>
 	{
-		private readonly UserService _userService;
+		private readonly ProfileService _profileService;
 
 		private readonly ILogger<GameHub> _logger;
 
-		public UserInstance Me
+		public UserProfile Me
 		{
-			get => (UserInstance)Context.Items[nameof(UserInstance)]!;
-			set => Context.Items.Add(nameof(UserInstance), value);
+			get => (UserProfile)Context.Items[nameof(UserProfile)]!;
+			set => Context.Items.Add(nameof(UserProfile), value);
 		}
 
-		public GameHub(UserService userService, GameService gameService, ILogger<GameHub> logger)
+		public GameHub(ProfileService profileService, GameService gameService, ILogger<GameHub> logger)
 		{
-			_userService = userService;
+			_profileService = profileService;
 			_logger = logger;
 		}
 
 		public override async Task OnConnectedAsync()
 		{
-			Me = await _userService.RegisterAsync(Context);
+			Me = await _profileService.RegisterAsync(Context);
 
 			await base.OnConnectedAsync();
 		}
 
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
-			await _userService.UnregisterAsync(Context);
+			await _profileService.UnregisterAsync(Context);
 
 			Context.Items.Clear();
 
@@ -70,7 +72,7 @@ namespace DobirnaGraServer.Hubs
 		{
 			try
 			{
-				await game.JoinLobbyAsync(Me, actionMessage.InviteCode);
+				await game.JoinLobbyAsync(Me, actionMessage.InviteCode, Context.ConnectionAborted);
 			}
 			catch (Exception e)
 			{

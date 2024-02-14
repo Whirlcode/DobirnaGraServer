@@ -2,7 +2,7 @@
 
 namespace DobirnaGraServer.Game
 {
-	public class UserInstance(HubCallerContext context)
+	public class UserProfile(HubCallerContext context)
 	{
 		public string ConnectionId => context.ConnectionId;
 
@@ -12,17 +12,16 @@ namespace DobirnaGraServer.Game
 
 		public bool IsValid => Context != null;
 
-		public LobbyInstance? CurrentLobby
+		public Lobby? CurrentLobby
 		{
-			get => (LobbyInstance?)Context?.Items[nameof(CurrentLobby)];
+			get => (Lobby?)Context?.Items[nameof(CurrentLobby)];
 			set
 			{
 				if (Context == null)
 					throw new InvalidOperationException("User is dead!");
 				if (value != null && !value.HasUser(this))
 					throw new InvalidOperationException("The user is not in the group.");
-
-				if (value == null && Context.Items[nameof(CurrentLobby)] is LobbyInstance current && current.HasUser(this))
+				if (value == null && Context.Items[nameof(CurrentLobby)] is Lobby current && current.HasUser(this))
 					throw new InvalidOperationException("The user is still in the group.");
 
 				Context.Items[nameof(CurrentLobby)] = value;

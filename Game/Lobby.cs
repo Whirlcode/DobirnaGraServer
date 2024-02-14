@@ -1,11 +1,12 @@
 ﻿using DobirnaGraServer.Hubs;
+using DobirnaGraServer.Models.MessageTypes;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public sealed class LobbyInstance : IDisposable, IAsyncDisposable
+	public sealed class Lobby : IDisposable, IAsyncDisposable
 	{
-		public delegate void EventNumberUserChanged(LobbyInstance lobby);
+		public delegate void EventNumberUserChanged(Lobby lobby);
 
 		public event EventNumberUserChanged? OnNumberUserChanged;
 
@@ -21,7 +22,7 @@ namespace DobirnaGraServer.Game
 
 		public string Name { get; init; }
 
-		public LobbyInstance(IHubContext<GameHub> hubContext, string name)
+		public Lobby(IHubContext<GameHub> hubContext, string name)
 		{
 			_hubContext = hubContext;
 			Name = name;
@@ -31,7 +32,7 @@ namespace DobirnaGraServer.Game
 			Users = new UserList();
 		}
 
-		~LobbyInstance()
+		~Lobby()
 		{
 			Dispose();
 		}
@@ -47,12 +48,12 @@ namespace DobirnaGraServer.Game
 			await KickAllUsersAsync();
 		}
 
-		public bool HasUser(UserInstance user)
+		public bool HasUser(UserProfile user)
 		{
 			return Users.Any(e => e == user);
 		}
 
-		public async Task JoinUserAsync(UserInstance user, CancellationToken ct)
+		public async Task JoinUserAsync(UserProfile user, CancellationToken ct)
 		{
 			if (user.CurrentLobby is {} currentLobby)
 				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
@@ -65,7 +66,7 @@ namespace DobirnaGraServer.Game
 			OnNumberUserChanged?.Invoke(this);
 		}
 
-		public async Task LeaveUserAsync(UserInstance user, CancellationToken ct)
+		public async Task LeaveUserAsync(UserProfile user, CancellationToken ct)
 		{
 			Users.RemoveUser(user);
 			user.CurrentLobby = null;
@@ -86,6 +87,11 @@ namespace DobirnaGraServer.Game
 			}
 
 			OnNumberUserChanged?.Invoke(this);
+		}
+
+		private void NotifyGameStateChanged()
+		{
+			
 		}
 	}
 }

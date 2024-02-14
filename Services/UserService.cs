@@ -1,9 +1,10 @@
 ﻿using DobirnaGraServer.Game;
+using DobirnaGraServer.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Services
 {
-	public class UserService
+	public class UserService(IHubContext<GameHub> hubContext)
 	{
 		private Dictionary<string, UserInstance> persistentData = new();
 

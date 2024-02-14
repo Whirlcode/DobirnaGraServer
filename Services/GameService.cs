@@ -10,11 +10,11 @@ namespace DobirnaGraServer.Services
 
 		private readonly object _lockLobbies = new();
 
-		public async Task CreateLobbyAsync(UserInstance creator, string name)
+		public async Task CreateLobbyAsync(UserInstance creator, string name, CancellationToken ct)
 		{
 			LobbyInstance instance = new(hubContext, name);
 
-			await instance.JoinUserAsync(creator);
+			await instance.JoinUserAsync(creator, ct);
 
 			lock (_lockLobbies)
 			{
@@ -24,11 +24,11 @@ namespace DobirnaGraServer.Services
 			instance.OnNumberUserChanged += OnNumberUserChanged;
 		}
 
-		public async Task JoinLobbyAsync(UserInstance user, string inviteCode)
+		public async Task JoinLobbyAsync(UserInstance user, string inviteCode, CancellationToken ct)
 		{
 			if (InviteCode.FindId(inviteCode, out Guid lobbyId) && Lobbies.TryGetValue(lobbyId, out LobbyInstance? lobby))
 			{
-				await lobby.JoinUserAsync(user);
+				await lobby.JoinUserAsync(user, ct);
 			}
 			else
 			{

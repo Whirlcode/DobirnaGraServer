@@ -33,7 +33,7 @@ namespace DobirnaGraServer.Game
 		{
 			if (CurrentLobby != null)
 			{
-				await CurrentLobby.LeaveUserAsync(this);
+				await CurrentLobby.LeaveUserAsync(this, default);
 			}
 			CurrentLobby = null;
 			WeakContext.Target = null;

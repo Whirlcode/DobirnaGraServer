@@ -52,7 +52,7 @@ namespace DobirnaGraServer.Game
 			return Users.Any(e => e == user);
 		}
 
-		public async Task JoinUserAsync(UserInstance user)
+		public async Task JoinUserAsync(UserInstance user, CancellationToken ct)
 		{
 			if (user.CurrentLobby is {} currentLobby)
 				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
@@ -60,28 +60,28 @@ namespace DobirnaGraServer.Game
 			Users.AddUser(user);
 			user.CurrentLobby = this;
 
-			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString());
+			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
 
 			OnNumberUserChanged?.Invoke(this);
 		}
 
-		public async Task LeaveUserAsync(UserInstance user)
+		public async Task LeaveUserAsync(UserInstance user, CancellationToken ct)
 		{
 			Users.RemoveUser(user);
 			user.CurrentLobby = null;
 
-			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString());
+			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
 
 			OnNumberUserChanged?.Invoke(this);
 		}
 
-		public async Task KickAllUsersAsync()
+		public async Task KickAllUsersAsync(CancellationToken ct = default)
 		{
 			var users = Users.ToArray();
 			Users.Clear();
 			foreach (var user in users)
 			{
-				await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString());
+				await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
 				user.CurrentLobby = null;
 			}
 

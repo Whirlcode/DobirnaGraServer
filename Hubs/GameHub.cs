@@ -57,7 +57,7 @@ namespace DobirnaGraServer.Hubs
 		{
 			try
 			{
-				await game.CreateLobbyAsync(Me, actionMessage.Name);
+				await game.CreateLobbyAsync(Me, actionMessage.Name, Context.ConnectionAborted);
 			}
 			catch (Exception e)
 			{

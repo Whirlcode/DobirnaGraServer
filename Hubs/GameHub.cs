@@ -84,6 +84,21 @@ namespace DobirnaGraServer.Hubs
 			}
 		}
 
+		public async Task LeaveLobby([FromServices] GameService game)
+		{
+			try
+			{
+				if (Me.CurrentLobby != null)
+				{
+					await Me.CurrentLobby.LeaveUserAsync(Me, Context.ConnectionAborted);
+				}
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
 		public Task TryTake()
 		{
 			return Task.CompletedTask;

@@ -23,12 +23,15 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required string Name { get; init; }
 
+		public required GameRole Role { get; init; }
+
 		public static UserInfo Make(IProfile me)
 		{
 			return new UserInfo()
 			{
 				Id = me.Id,
-				Name = me.Name
+				Name = me.Name,
+				Role = me.Role
 			};
 		}
 	}

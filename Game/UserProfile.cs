@@ -18,7 +18,6 @@ namespace DobirnaGraServer.Game
 
 		public Guid Id { get; private init; } = Guid.NewGuid();
 
-
 		private string _name = string.Empty;
 
 		public string Name
@@ -46,6 +45,19 @@ namespace DobirnaGraServer.Game
 
 				_currentLobby = value;
 
+				NotifyOnProfileChanged();
+			}
+		}
+
+
+		private GameRole _role;
+
+		public GameRole Role
+		{
+			get => _role;
+			set
+			{
+				_role = value;
 				NotifyOnProfileChanged();
 			}
 		}

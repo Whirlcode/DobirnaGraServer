@@ -6,6 +6,10 @@ namespace DobirnaGraServer.Game
 {
 	public class UserProfile : IProfile
 	{
+		public delegate void OnProfileChangedEvent();
+
+		public event OnProfileChangedEvent OnProfileChanged;
+
 		private readonly string _connectionId;
 
 		public string ConnectionId => _connectionId;
@@ -26,7 +30,7 @@ namespace DobirnaGraServer.Game
 			set
 			{
 				_name = value;
-				NotifyOnProfileChanged();
+				OnProfileChanged?.Invoke();
 			}
 		}
 
@@ -44,8 +48,6 @@ namespace DobirnaGraServer.Game
 					throw new InvalidOperationException("The user is still in the group.");
 
 				_currentLobby = value;
-
-				NotifyOnProfileChanged();
 			}
 		}
 
@@ -58,7 +60,7 @@ namespace DobirnaGraServer.Game
 			set
 			{
 				_role = value;
-				NotifyOnProfileChanged();
+				OnProfileChanged?.Invoke();
 			}
 		}
 
@@ -67,6 +69,8 @@ namespace DobirnaGraServer.Game
 			_connectionId = callerContext.ConnectionId;
 			_weakContext = new WeakReference(callerContext);
 			_hubContext = hubContext;
+
+			OnProfileChanged += NotifyOnProfileChanged;
 		}
 
 		public async Task AbandonAsync()

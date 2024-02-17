@@ -64,11 +64,15 @@ namespace DobirnaGraServer.Game
 			UserList.Add(user);
 			user.CurrentLobby = this;
 
+			NotifyLobbyChangedAsync();
+
+			await _hubContext.Clients.Client(user.ConnectionId)
+				.OnLobbyChanged(LobbyAction.Joined, LobbyInfo.Make(this));
+
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
+			user.OnProfileChanged += NotifyLobbyChangedAsync;
 
 			OnNumberUserChanged?.Invoke(this);
-
-			NotifyGameStateChangedAsync();
 		}
 
 		public async Task LeaveUserAsync(UserProfile user, CancellationToken ct)
@@ -77,10 +81,14 @@ namespace DobirnaGraServer.Game
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
+			user.OnProfileChanged -= NotifyLobbyChangedAsync;
+
+			await _hubContext.Clients.Client(user.ConnectionId)
+				.OnLobbyChanged(LobbyAction.Leaved, null);
+
+			NotifyLobbyChangedAsync();
 
 			OnNumberUserChanged?.Invoke(this);
-
-			NotifyGameStateChangedAsync();
 		}
 
 		public async Task KickAllUsersAsync(CancellationToken ct = default)
@@ -95,14 +103,14 @@ namespace DobirnaGraServer.Game
 
 			OnNumberUserChanged?.Invoke(this);
 
-			NotifyGameStateChangedAsync();
+			NotifyLobbyChangedAsync();
 		}
 
-		private async void NotifyGameStateChangedAsync()
+		private async void NotifyLobbyChangedAsync()
 		{
 			await _hubContext.Clients
 				.Group(Id.ToString())
-				.OnLobbyStateChanged(LobbyInfo.Make(this));
+				.OnLobbyChanged(LobbyAction.Updated, LobbyInfo.Make(this));
 		}
 	}
 }

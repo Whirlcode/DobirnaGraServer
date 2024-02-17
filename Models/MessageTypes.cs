@@ -36,6 +36,13 @@ namespace DobirnaGraServer.Models.MessageTypes
 		}
 	}
 
+	public enum LobbyAction
+	{
+		Joined,
+		Leaved,
+		Updated
+	}
+
 	public class LobbyInfo
 	{
 		public required Guid Id { get; init; }

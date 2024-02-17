@@ -6,21 +6,36 @@ namespace DobirnaGraServer.Services
 {
 	public class ProfileService(IHubContext<GameHub, IGameClient> hubContext)
 	{
-		private readonly Dictionary<string, UserProfile> _persistentData = new();
+		private readonly Dictionary<string, UserProfile> _users = new();
 
-		public Task<UserProfile> RegisterAsync(HubCallerContext caller)
+		private readonly object _lockUsers = new();
+
+		public async Task<UserProfile> RegisterAsync(HubCallerContext caller)
 		{
-			UserProfile profile = new(caller, hubContext);
-			_persistentData.Add(caller.ConnectionId, profile);
-			return Task.FromResult(profile);
+			UserProfile profile = new(hubContext);
+
+			lock (_lockUsers)
+			{
+				_users.Add(caller.ConnectionId, profile);
+			}
+
+			await profile.Login(caller);
+
+			return profile;
 		}
 
 		public async Task UnregisterAsync(HubCallerContext caller)
 		{
-			_persistentData.Remove(caller.ConnectionId, out UserProfile? instance);
+			UserProfile? instance;
+
+			lock (_lockUsers)
+			{
+				_users.Remove(caller.ConnectionId, out instance);
+			}
+
 			if (instance != null)
 			{
-				await instance.AbandonAsync();
+				await instance.Logout();
 			}
 		}
 	}

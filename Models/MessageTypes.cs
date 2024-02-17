@@ -17,21 +17,41 @@ namespace DobirnaGraServer.Models.MessageTypes
 		public string? Name { get; init; }
 	}
 
-	public class UserInfo
+	public enum ProfileAction
+	{
+		LoggedIn,
+		Updated,
+		Logout
+	}
+
+	public class ProfileData
 	{
 		public required Guid Id { get; init; }
 
-		public required string Name { get; init; }
-
-		public required GameRole Role { get; init; }
-
-		public static UserInfo Make(IProfile me)
+		public static ProfileData Make(IProfile me)
 		{
-			return new UserInfo()
+			return new ProfileData()
 			{
 				Id = me.Id,
-				Name = me.Name,
-				Role = me.Role
+			};
+		}
+	}
+
+	public class PlayerTableData
+	{
+		public Guid Id { get; init; } = Guid.Empty;
+
+		public string Name { get; init; } = string.Empty;
+
+		public int Score { get; init; }
+
+		public static PlayerTableData Make(ITable table)
+		{
+			return new PlayerTableData()
+			{
+				Id = table.User?.Id ?? Guid.Empty,
+				Name = table.User?.Name ?? string.Empty,
+				Score = table.Score
 			};
 		}
 	}
@@ -43,7 +63,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 		Updated
 	}
 
-	public class LobbyInfo
+	public class LobbyData
 	{
 		public required Guid Id { get; init; }
 
@@ -51,16 +71,16 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required string InviteCode { get; init; }
 
-		public required IList<UserInfo> Users { get; init; }
+		public required IList<PlayerTableData> Tables { get; init; }
 
-		public static LobbyInfo Make(ILobby lobby)
+		public static LobbyData Make(ILobby lobby)
 		{
-			return new LobbyInfo()
+			return new LobbyData()
 			{
 				Id = lobby.Id,
 				Name = lobby.Name,
 				InviteCode = lobby.InviteCode,
-				Users = lobby.Users.Select(UserInfo.Make).ToList()
+				Tables = lobby.Tables.Select(PlayerTableData.Make).ToList()
 			};
 		}
 	}

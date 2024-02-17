@@ -7,7 +7,7 @@ namespace DobirnaGraServer.Hubs
 		Task OnProfileChanged(ProfileAction action, ProfileData? profile);
 
 
-		Task OnLobbyChanged(LobbyAction action, LobbyInfo? info);
+		Task OnLobbyChanged(LobbyAction action, LobbyData? info);
 
 
 		Task OnServerError(string err);

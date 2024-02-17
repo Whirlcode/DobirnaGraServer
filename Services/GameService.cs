@@ -38,7 +38,7 @@ namespace DobirnaGraServer.Services
 
 		private void OnNumberUserChanged(Lobby lobby)
 		{
-			if (lobby.NumberUser <= 0)
+			if (!lobby.Users.Any())
 			{
 				DestroyLobby(lobby);
 			}

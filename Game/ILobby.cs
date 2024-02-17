@@ -9,5 +9,7 @@
 		InviteCode InviteCode { get; }
 
 		IEnumerable<IProfile> Users { get; }
+
+		IEnumerable<ITable> Tables { get; }
 	}
 }

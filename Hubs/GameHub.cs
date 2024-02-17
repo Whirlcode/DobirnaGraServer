@@ -99,9 +99,16 @@ namespace DobirnaGraServer.Hubs
 			}
 		}
 
-		public Task TryTake()
+		public async Task Seat(int index)
 		{
-			return Task.CompletedTask;
+			try
+			{
+				Me.CurrentLobby?.Seat(Me, index);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
 		}
 	}
 }

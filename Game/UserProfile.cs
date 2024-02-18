@@ -23,6 +23,8 @@ namespace DobirnaGraServer.Game
 			get => _name;
 			set
 			{
+				if (_name == value)
+					return;
 				_name = value;
 				OnProfileChanged?.Invoke();
 			}
@@ -74,6 +76,8 @@ namespace DobirnaGraServer.Game
 
 		private async Task OnLogout()
 		{
+			OnProfileChanged -= NotifyOnProfileChanged;
+
 			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Logout, null);
 		}
 

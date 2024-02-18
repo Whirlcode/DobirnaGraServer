@@ -3,6 +3,7 @@ using DobirnaGraServer.Models.MessageTypes;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System;
 
 namespace DobirnaGraServer.Hubs
 {
@@ -104,6 +105,18 @@ namespace DobirnaGraServer.Hubs
 			try
 			{
 				Me.CurrentLobby?.Seat(Me, index);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task SeatMaster()
+		{
+			try
+			{
+				Me.CurrentLobby?.SeatMaster(Me);
 			}
 			catch (Exception e)
 			{

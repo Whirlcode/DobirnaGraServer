@@ -76,6 +76,24 @@ namespace DobirnaGraServer.Game
 				TablesList.AddRange(Enumerable.Repeat(new PlayerTable(), number - TablesList.Count));
 		}
 
+		public void SeatMaster(UserProfile user)
+		{
+			if (!HasUser(user))
+				throw new InvalidOperationException("This user is not in the lobby");
+
+			if (Master != null)
+				throw new InvalidOperationException("The master's seat is already taken!");
+
+			if (FindSeat(user, out PlayerTable? table) && table != null)
+			{
+				table.User = null;
+			}
+
+			Master = null;
+
+			NotifyLobbyChangedAsync();
+		}
+
 		public void Seat(UserProfile user, int index)
 		{
 			if (!HasUser(user))
@@ -83,6 +101,9 @@ namespace DobirnaGraServer.Game
 
 			if(index < TablesList.Count)
 				throw new InvalidOperationException("There's no such seat.");
+
+			if (TablesList[index].User != null)
+				throw new InvalidOperationException("The seat is already taken!");
 
 			if (FindSeat(user, out PlayerTable? table) && table != null)
 			{

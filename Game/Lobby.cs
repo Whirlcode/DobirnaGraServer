@@ -1,6 +1,5 @@
 ﻿using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.MessageTypes;
-using DobirnaGraServer.Utils;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
@@ -59,7 +58,7 @@ namespace DobirnaGraServer.Game
 			return UserList.Any(e => e == user);
 		}
 
-		public bool FindSeat(UserProfile user, out PlayerTable? table)
+		private bool FindSeat(UserProfile user, out PlayerTable? table)
 		{
 			var res = TablesList.FirstOrDefault(table => table.User == user);
 			table = res;
@@ -84,9 +83,7 @@ namespace DobirnaGraServer.Game
 				throw new InvalidOperationException("The master's seat is already taken!");
 
 			if (FindSeat(user, out PlayerTable? table) && table != null)
-			{
 				table.User = null;
-			}
 
 			Master = null;
 
@@ -105,9 +102,7 @@ namespace DobirnaGraServer.Game
 				throw new InvalidOperationException("The seat is already taken!");
 
 			if (FindSeat(user, out PlayerTable? table) && table != null)
-			{
 				table.User = null;
-			}
 
 			TablesList[index].User = user;
 
@@ -117,14 +112,10 @@ namespace DobirnaGraServer.Game
 		private void Unseat(UserProfile user, bool groupSilent)
 		{
 			if (Master == user)
-			{
 				Master = null;
-			}
 
 			if (FindSeat(user, out PlayerTable? table) && table != null)
-			{
 				table.User = null;
-			}
 
 			if (!groupSilent)
 				NotifyLobbyChangedAsync();

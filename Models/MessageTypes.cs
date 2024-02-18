@@ -39,7 +39,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 	public class PlayerTableData
 	{
-		public Guid Id { get; init; } = Guid.Empty;
+		public Guid Id { get; init; }
 
 		public string Name { get; init; } = string.Empty;
 
@@ -52,6 +52,22 @@ namespace DobirnaGraServer.Models.MessageTypes
 				Id = table.User?.Id ?? Guid.Empty,
 				Name = table.User?.Name ?? string.Empty,
 				Score = table.Score
+			};
+		}
+	}
+
+	public class MasterData
+	{
+		public required Guid Id { get; init; }
+
+		public string Name { get; init; } = string.Empty;
+
+		public static MasterData Make(IProfile profile)
+		{
+			return new MasterData()
+			{
+				Id = profile.Id,
+				Name = profile.Name
 			};
 		}
 	}
@@ -73,6 +89,8 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required IList<PlayerTableData> Tables { get; init; }
 
+		public required MasterData Master { get; init; }
+
 		public static LobbyData Make(ILobby lobby)
 		{
 			return new LobbyData()
@@ -80,7 +98,8 @@ namespace DobirnaGraServer.Models.MessageTypes
 				Id = lobby.Id,
 				Name = lobby.Name,
 				InviteCode = lobby.InviteCode,
-				Tables = lobby.Tables.Select(PlayerTableData.Make).ToList()
+				Tables = lobby.Tables.Select(PlayerTableData.Make).ToList(),
+				Master = MasterData.Make(lobby.Master)
 			};
 		}
 	}

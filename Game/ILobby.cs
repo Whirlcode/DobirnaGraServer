@@ -11,5 +11,7 @@
 		IEnumerable<IProfile> Users { get; }
 
 		IEnumerable<ITable> Tables { get; }
+
+		IProfile Master { get; }
 	}
 }

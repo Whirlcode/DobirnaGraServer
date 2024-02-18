@@ -114,7 +114,7 @@ namespace DobirnaGraServer.Game
 			NotifyLobbyChangedAsync();
 		}
 
-		private void Unseat(UserProfile user)
+		private void Unseat(UserProfile user, bool groupSilent)
 		{
 			if (Master == user)
 			{
@@ -125,6 +125,9 @@ namespace DobirnaGraServer.Game
 			{
 				table.User = null;
 			}
+
+			if (!groupSilent)
+				NotifyLobbyChangedAsync();
 		}
 
 		public async Task JoinUserAsync(UserProfile user, CancellationToken ct)
@@ -148,7 +151,7 @@ namespace DobirnaGraServer.Game
 
 		private async Task LeaveUserExtAsync(UserProfile user, bool groupSilent, CancellationToken ct)
 		{
-			Unseat(user);
+			Unseat(user, true);
 
 			UserList.Remove(user);
 			user.CurrentLobby = null;
@@ -159,7 +162,8 @@ namespace DobirnaGraServer.Game
 			await _hubContext.Clients.Client(user.ConnectionId)
 				.OnLobbyChanged(LobbyAction.Leaved, null);
 
-			NotifyLobbyChangedAsync();
+			if(!groupSilent)
+				NotifyLobbyChangedAsync();
 
 			OnNumberUserChanged?.Invoke(this);
 		}

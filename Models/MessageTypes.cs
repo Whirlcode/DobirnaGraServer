@@ -62,12 +62,12 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public string Name { get; init; } = string.Empty;
 
-		public static MasterData Make(IProfile profile)
+		public static MasterData Make(IProfile? profile)
 		{
 			return new MasterData()
 			{
-				Id = profile.Id,
-				Name = profile.Name
+				Id = profile?.Id ?? Guid.Empty,
+				Name = profile?.Name ?? String.Empty
 			};
 		}
 	}

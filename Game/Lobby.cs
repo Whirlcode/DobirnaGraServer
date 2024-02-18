@@ -98,7 +98,7 @@ namespace DobirnaGraServer.Game
 			if (!HasUser(user))
 				throw new InvalidOperationException("This user is not in the lobby");
 
-			if(index < TablesList.Count)
+			if(index >= TablesList.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
 			if (TablesList[index].User != null)

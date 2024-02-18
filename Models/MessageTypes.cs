@@ -1,15 +1,22 @@
 ﻿using DobirnaGraServer.Game;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Models.MessageTypes
 {
 	public class JoinLobbyActionMessage
 	{
 		public required string InviteCode { get; init; }
+
+		public required string UserName { get; init; }
 	}
 
 	public class CreateLobbyActionMessage
 	{
-		public required string Name { get; init; }
+		public required string NameLobby { get; init; }
+
+		public required string UserName { get; init; }
+
+		public required int InitCountTables { get; init; }
 	}
 
 	public class UpdateProfileActionMessage
@@ -39,35 +46,41 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 	public class PlayerTableData
 	{
-		public Guid Id { get; init; }
+		public Guid? UserId { get; init; }
 
-		public string Name { get; init; } = string.Empty;
+		public string? UserName { get; init; }
 
-		public int Score { get; init; }
+		public required int Score { get; init; }
+
+		public required bool IsOccupied { get; init; }
 
 		public static PlayerTableData Make(ITable table)
 		{
 			return new PlayerTableData()
 			{
-				Id = table.User?.Id ?? Guid.Empty,
-				Name = table.User?.Name ?? string.Empty,
-				Score = table.Score
+				UserId = table.User?.Id,
+				UserName = table.User?.Name,
+				Score = table.Score,
+				IsOccupied = table.User != null
 			};
 		}
 	}
 
 	public class MasterData
 	{
-		public required Guid Id { get; init; }
+		public Guid? UserId { get; init; }
 
-		public string Name { get; init; } = string.Empty;
+		public string? UserName { get; init; } = string.Empty;
+
+		public required bool IsOccupied { get; init; }
 
 		public static MasterData Make(IProfile? profile)
 		{
 			return new MasterData()
 			{
-				Id = profile?.Id ?? Guid.Empty,
-				Name = profile?.Name ?? String.Empty
+				UserId = profile?.Id,
+				UserName = profile?.Name,
+				IsOccupied = profile != null
 			};
 		}
 	}

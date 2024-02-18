@@ -20,7 +20,7 @@ namespace DobirnaGraServer.Game
 
 		public IEnumerable<IProfile> Users => UserList;
 
-		public IEnumerable<ITable> Places => PlacesList;
+		public IEnumerable<IPlace> Places => PlacesList;
 
 		private List<UserProfile> UserList { get; init; } = [];
 

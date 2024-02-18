@@ -150,6 +150,8 @@ namespace DobirnaGraServer.Game
 			await _hubContext.Clients.Client(user.ConnectionId)
 				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));
 
+			NotifyLobbyChangedAsync();
+
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
 			user.OnProfileChanged += NotifyLobbyChangedAsync;
 
@@ -198,7 +200,8 @@ namespace DobirnaGraServer.Game
 		{
 			await _hubContext.Clients
 				.Group(Id.ToString())
-				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this));
+				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this))
+				.ConfigureAwait(false);
 		}
 	}
 }

@@ -83,7 +83,9 @@ namespace DobirnaGraServer.Game
 
 		private async void NotifyOnProfileChanged()
 		{
-			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Updated, ProfileData.Make(this));
+			await hubContext.Clients.Clients(ConnectionId)
+				.OnProfileChanged(ProfileAction.Updated, ProfileData.Make(this))
+				.ConfigureAwait(false);
 		}
 	}
 }

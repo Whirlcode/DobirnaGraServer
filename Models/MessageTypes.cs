@@ -1,5 +1,4 @@
 ﻿using DobirnaGraServer.Game;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Models.MessageTypes
 {

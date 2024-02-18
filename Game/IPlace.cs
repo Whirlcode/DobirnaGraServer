@@ -1,6 +1,6 @@
 ﻿namespace DobirnaGraServer.Game
 {
-	public interface ITable
+	public interface IPlace
 	{
 		public int Score { get; }
 

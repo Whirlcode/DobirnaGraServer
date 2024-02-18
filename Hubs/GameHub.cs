@@ -3,7 +3,6 @@ using DobirnaGraServer.Models.MessageTypes;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using System;
 
 namespace DobirnaGraServer.Hubs
 {
@@ -104,6 +103,30 @@ namespace DobirnaGraServer.Hubs
 			}
 		}
 
+		public async Task SetNumberPlaces(int number)
+		{
+			try
+			{
+				Me.CurrentLobby?.SetNumberPlaces(Me, number);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task RemovePlace(int index)
+		{
+			try
+			{
+				Me.CurrentLobby?.RemovePlace(Me, index);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
 		public async Task Seat(int index)
 		{
 			try
@@ -121,6 +144,18 @@ namespace DobirnaGraServer.Hubs
 			try
 			{
 				Me.CurrentLobby?.SeatMaster(Me);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task ChangeScore(ChangeScoreActionMessage actionMessage)
+		{
+			try
+			{
+				Me.CurrentLobby?.ChangeScore(Me, actionMessage.TargetPlaceIndex, actionMessage.NewScore);
 			}
 			catch (Exception e)
 			{

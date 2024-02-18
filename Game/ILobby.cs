@@ -10,7 +10,7 @@
 
 		IEnumerable<IProfile> Users { get; }
 
-		IEnumerable<ITable> Places { get; }
+		IEnumerable<IPlace> Places { get; }
 
 		IProfile? Master { get; }
 	}

@@ -23,6 +23,13 @@ namespace DobirnaGraServer.Models.MessageTypes
 		public string? Name { get; init; }
 	}
 
+	public class ChangeScoreActionMessage
+	{
+		public required int TargetPlaceIndex { get; init; }
+
+		public required int NewScore { get; init; }
+	}
+
 	public enum ProfileAction
 	{
 		LoggedIn,
@@ -53,14 +60,14 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required bool IsOccupied { get; init; }
 
-		public static PlayerPlaceData Make(ITable table)
+		public static PlayerPlaceData Make(IPlace place)
 		{
 			return new PlayerPlaceData()
 			{
-				UserId = table.User?.Id,
-				UserName = table.User?.Name,
-				Score = table.Score,
-				IsOccupied = table.User != null
+				UserId = place.User?.Id,
+				UserName = place.User?.Name,
+				Score = place.Score,
+				IsOccupied = place.User != null
 			};
 		}
 	}

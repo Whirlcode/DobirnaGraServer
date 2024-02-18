@@ -36,7 +36,6 @@ namespace DobirnaGraServer.Game
 
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
-			UserList = new WeakList<UserProfile>();
 		}
 
 		~Lobby()

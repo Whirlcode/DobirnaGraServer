@@ -15,17 +15,19 @@ namespace DobirnaGraServer.Game
 
 		private readonly IHubContext<GameHub, IGameClient> _hubContext;
 
+		public string Name { get; init; }
+
 		public InviteCode InviteCode { get; init; }
 
 		public IEnumerable<IProfile> Users => UserList;
 
 		public IEnumerable<ITable> Tables => TablesList;
 
-		private WeakList<UserProfile> UserList { get; init; }
+		private List<UserProfile> UserList { get; init; } = [];
 
 		private List<PlayerTable> TablesList { get; init; } = [];
 
-		public string Name { get; init; }
+		public IProfile? Master { get; private set; } = null;
 
 		public Lobby(IHubContext<GameHub, IGameClient> hubContext, string name)
 		{

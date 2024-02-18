@@ -77,6 +77,19 @@ namespace DobirnaGraServer.Game
 				NotifyLobbyChangedAsync();
 		}
 
+		public void ChangeScore(UserProfile caller, int placeIndex, int newScore)
+		{
+			if (caller != Master)
+				throw new InvalidOperationException("There is no permission to change the score!");
+
+			if (placeIndex >= PlacesList.Count)
+				throw new InvalidOperationException("There's no such seat.");
+
+			PlacesList[placeIndex].Score = newScore;
+
+			NotifyLobbyChangedAsync();
+		}
+
 		public void SeatMaster(UserProfile user)
 		{
 			if (!HasUser(user))

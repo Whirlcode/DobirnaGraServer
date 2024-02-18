@@ -127,5 +127,17 @@ namespace DobirnaGraServer.Hubs
 				await HandleServerException(e);
 			}
 		}
+
+		public async Task ChangeScore(ChangeScoreActionMessage actionMessage)
+		{
+			try
+			{
+				Me.CurrentLobby?.ChangeScore(Me, actionMessage.TargetPlaceIndex, actionMessage.NewScore);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
 	}
 }

@@ -23,6 +23,13 @@ namespace DobirnaGraServer.Models.MessageTypes
 		public string? Name { get; init; }
 	}
 
+	public class ChangeScoreActionMessage
+	{
+		public required int TargetPlaceIndex { get; init; }
+
+		public required int NewScore { get; init; }
+	}
+
 	public enum ProfileAction
 	{
 		LoggedIn,

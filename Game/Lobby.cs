@@ -85,8 +85,7 @@ namespace DobirnaGraServer.Game
 			if (Master != null)
 				throw new InvalidOperationException("The master's seat is already taken!");
 
-			if (FindSeat(user, out PlayerPlace? table) && table != null)
-				table.User = null;
+			Unseat(user, true);
 
 			Master = user;
 

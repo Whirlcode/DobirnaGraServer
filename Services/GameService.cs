@@ -12,9 +12,7 @@ namespace DobirnaGraServer.Services
 
 		public async Task CreateLobbyAsync(UserProfile creator, string name, int initialNumberPlaces, CancellationToken ct)
 		{
-			Lobby instance = new(hubContext, name);
-
-			instance.SetNumberSeats(initialNumberPlaces, true);
+			Lobby instance = new(hubContext, name, initialNumberPlaces);
 
 			await instance.JoinUserAsMasterAsync(creator, ct);
 

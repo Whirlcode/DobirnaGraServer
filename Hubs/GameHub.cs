@@ -3,7 +3,6 @@ using DobirnaGraServer.Models.MessageTypes;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using System;
 
 namespace DobirnaGraServer.Hubs
 {
@@ -97,6 +96,30 @@ namespace DobirnaGraServer.Hubs
 				{
 					await Me.CurrentLobby.LeaveUserAsync(Me, Context.ConnectionAborted);
 				}
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task SetNumberPlaces(int number)
+		{
+			try
+			{
+				Me.CurrentLobby?.SetNumberPlaces(Me, number);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task RemovePlace(int index)
+		{
+			try
+			{
+				Me.CurrentLobby?.RemovePlace(Me, index);
 			}
 			catch (Exception e)
 			{

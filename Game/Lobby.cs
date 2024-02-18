@@ -1,6 +1,7 @@
 ﻿using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.MessageTypes;
 using Microsoft.AspNetCore.SignalR;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Game
 {
@@ -28,13 +29,14 @@ namespace DobirnaGraServer.Game
 
 		public IProfile? Master { get; private set; } = null;
 
-		public Lobby(IHubContext<GameHub, IGameClient> hubContext, string name)
+		public Lobby(IHubContext<GameHub, IGameClient> hubContext, string name, int initialNumberPlaces)
 		{
 			_hubContext = hubContext;
 			Name = name;
-
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
+
+			PlacesList = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
 		}
 
 		~Lobby()
@@ -65,16 +67,43 @@ namespace DobirnaGraServer.Game
 			return res != null;
 		}
 
-		public void SetNumberSeats(int number, bool groupSilent)
+		public void SetNumberPlaces(UserProfile caller, int number)
 		{
+			if (caller != Master)
+				throw new InvalidOperationException("There is no permission to change the score!");
+
 			PlacesList.Capacity = number;
 			if (number < PlacesList.Count)
+			{
+				PlacesList.Sort((l, r) =>
+				{
+					if (l.User == null && r.User != null)
+						return 1;
+					if (l.User != null && r.User == null)
+						return -1;
+					return 0;
+				});
 				PlacesList.RemoveRange(number, PlacesList.Count - number);
+			}
 			else if (number > PlacesList.Count)
+			{
 				PlacesList.AddRange(Enumerable.Range(0, number - PlacesList.Count).Select(e => new PlayerPlace()));
+			}
 
-			if(!groupSilent)
-				NotifyLobbyChangedAsync();
+			NotifyLobbyChangedAsync();
+		}
+
+		public void RemovePlace(UserProfile caller, int index)
+		{
+			if (caller != Master)
+				throw new InvalidOperationException("There is no permission to change the score!");
+
+			if (index >= PlacesList.Count)
+				throw new InvalidOperationException("There's no such seat.");
+
+			PlacesList.RemoveAt(index);
+
+			NotifyLobbyChangedAsync();
 		}
 
 		public void ChangeScore(UserProfile caller, int placeIndex, int newScore)
@@ -145,7 +174,7 @@ namespace DobirnaGraServer.Game
 				Master = user;
 				await JoinUserAsync(user, ct);
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
 				Master = null;
 				throw;

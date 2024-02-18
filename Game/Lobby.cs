@@ -114,6 +114,19 @@ namespace DobirnaGraServer.Game
 			NotifyLobbyChangedAsync();
 		}
 
+		private void Unseat(UserProfile user)
+		{
+			if (Master == user)
+			{
+				Master = null;
+			}
+
+			if (FindSeat(user, out PlayerTable? table) && table != null)
+			{
+				table.User = null;
+			}
+		}
+
 		public async Task JoinUserAsync(UserProfile user, CancellationToken ct)
 		{
 			if (user.CurrentLobby is {} currentLobby)
@@ -135,6 +148,8 @@ namespace DobirnaGraServer.Game
 
 		private async Task LeaveUserExtAsync(UserProfile user, bool groupSilent, CancellationToken ct)
 		{
+			Unseat(user);
+
 			UserList.Remove(user);
 			user.CurrentLobby = null;
 

@@ -10,7 +10,10 @@ namespace DobirnaGraServer.Game
 		{
 			Code = GenerateUniqueToken();
 
-			AssociatedCodes.Add(Code, id);
+			lock (_lockdata)
+			{
+				AssociatedCodes.Add(Code, id);
+			}
 		}
 
 		~InviteCode()
@@ -20,10 +23,15 @@ namespace DobirnaGraServer.Game
 
 		public void Dispose()
 		{
-			AssociatedCodes.Remove(Code);
+			lock (_lockdata)
+			{
+				AssociatedCodes.Remove(Code);
+			}
 		}
 
 		private static readonly IDictionary<string, Guid> AssociatedCodes = new Dictionary<string, Guid>();
+
+		private static readonly object _lockdata = new();
 
 		private static string GenerateUniqueToken()
 		{

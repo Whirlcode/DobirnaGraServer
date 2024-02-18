@@ -3,6 +3,7 @@ using DobirnaGraServer.Models.MessageTypes;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System;
 
 namespace DobirnaGraServer.Hubs
 {
@@ -84,9 +85,43 @@ namespace DobirnaGraServer.Hubs
 			}
 		}
 
-		public Task TryTake()
+		public async Task LeaveLobby([FromServices] GameService game)
 		{
-			return Task.CompletedTask;
+			try
+			{
+				if (Me.CurrentLobby != null)
+				{
+					await Me.CurrentLobby.LeaveUserAsync(Me, Context.ConnectionAborted);
+				}
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task Seat(int index)
+		{
+			try
+			{
+				Me.CurrentLobby?.Seat(Me, index);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task SeatMaster()
+		{
+			try
+			{
+				Me.CurrentLobby?.SeatMaster(Me);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
 		}
 	}
 }

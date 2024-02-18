@@ -4,9 +4,11 @@ namespace DobirnaGraServer.Hubs
 {
 	public interface IGameClient
 	{
-		Task OnProfileChanged(UserInfo info);
+		Task OnProfileChanged(ProfileAction action, ProfileData? profile);
 
-		Task OnLobbyStateChanged(LobbyInfo info);
+
+		Task OnLobbyChanged(LobbyAction action, LobbyData? info);
+
 
 		Task OnServerError(string err);
 	}

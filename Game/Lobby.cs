@@ -1,11 +1,10 @@
 ﻿using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.MessageTypes;
-using DobirnaGraServer.Utils;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-    public sealed class Lobby : ILobby, IDisposable, IAsyncDisposable
+	public sealed class Lobby : ILobby, IDisposable, IAsyncDisposable
 	{
 		public delegate void EventNumberUserChanged(Lobby lobby);
 
@@ -15,15 +14,19 @@ namespace DobirnaGraServer.Game
 
 		private readonly IHubContext<GameHub, IGameClient> _hubContext;
 
+		public string Name { get; init; }
+
 		public InviteCode InviteCode { get; init; }
 
 		public IEnumerable<IProfile> Users => UserList;
 
-		private WeakList<UserProfile> UserList { get; init; }
+		public IEnumerable<ITable> Tables => TablesList;
 
-		public int NumberUser => UserList.Count;
+		private List<UserProfile> UserList { get; init; } = [];
 
-		public string Name { get; init; }
+		private List<PlayerTable> TablesList { get; init; } = [];
+
+		public IProfile? Master { get; private set; } = null;
 
 		public Lobby(IHubContext<GameHub, IGameClient> hubContext, string name)
 		{
@@ -32,7 +35,6 @@ namespace DobirnaGraServer.Game
 
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
-			UserList = new WeakList<UserProfile>();
 		}
 
 		~Lobby()
@@ -56,6 +58,69 @@ namespace DobirnaGraServer.Game
 			return UserList.Any(e => e == user);
 		}
 
+		private bool FindSeat(UserProfile user, out PlayerTable? table)
+		{
+			var res = TablesList.FirstOrDefault(table => table.User == user);
+			table = res;
+			return res != null;
+		}
+
+		public void SetNumberSeats(int number)
+		{
+			TablesList.Capacity = number;
+			if (number < TablesList.Count)
+				TablesList.RemoveRange(number, TablesList.Count - number);
+			else if (number > TablesList.Count)
+				TablesList.AddRange(Enumerable.Repeat(new PlayerTable(), number - TablesList.Count));
+		}
+
+		public void SeatMaster(UserProfile user)
+		{
+			if (!HasUser(user))
+				throw new InvalidOperationException("This user is not in the lobby");
+
+			if (Master != null)
+				throw new InvalidOperationException("The master's seat is already taken!");
+
+			if (FindSeat(user, out PlayerTable? table) && table != null)
+				table.User = null;
+
+			Master = null;
+
+			NotifyLobbyChangedAsync();
+		}
+
+		public void Seat(UserProfile user, int index)
+		{
+			if (!HasUser(user))
+				throw new InvalidOperationException("This user is not in the lobby");
+
+			if(index < TablesList.Count)
+				throw new InvalidOperationException("There's no such seat.");
+
+			if (TablesList[index].User != null)
+				throw new InvalidOperationException("The seat is already taken!");
+
+			if (FindSeat(user, out PlayerTable? table) && table != null)
+				table.User = null;
+
+			TablesList[index].User = user;
+
+			NotifyLobbyChangedAsync();
+		}
+
+		private void Unseat(UserProfile user, bool groupSilent)
+		{
+			if (Master == user)
+				Master = null;
+
+			if (FindSeat(user, out PlayerTable? table) && table != null)
+				table.User = null;
+
+			if (!groupSilent)
+				NotifyLobbyChangedAsync();
+		}
+
 		public async Task JoinUserAsync(UserProfile user, CancellationToken ct)
 		{
 			if (user.CurrentLobby is {} currentLobby)
@@ -64,45 +129,60 @@ namespace DobirnaGraServer.Game
 			UserList.Add(user);
 			user.CurrentLobby = this;
 
+			NotifyLobbyChangedAsync();
+
+			await _hubContext.Clients.Client(user.ConnectionId)
+				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));
+
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
+			user.OnProfileChanged += NotifyLobbyChangedAsync;
 
 			OnNumberUserChanged?.Invoke(this);
-
-			NotifyGameStateChangedAsync();
 		}
 
-		public async Task LeaveUserAsync(UserProfile user, CancellationToken ct)
+		private async Task LeaveUserExtAsync(UserProfile user, bool groupSilent, CancellationToken ct)
 		{
+			Unseat(user, true);
+
 			UserList.Remove(user);
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
+			user.OnProfileChanged -= NotifyLobbyChangedAsync;
+
+			await _hubContext.Clients.Client(user.ConnectionId)
+				.OnLobbyChanged(LobbyAction.Leaved, null);
+
+			if(!groupSilent)
+				NotifyLobbyChangedAsync();
 
 			OnNumberUserChanged?.Invoke(this);
+		}
 
-			NotifyGameStateChangedAsync();
+		public Task LeaveUserAsync(UserProfile user, CancellationToken ct)
+		{
+			return LeaveUserExtAsync(user, false, ct);
 		}
 
 		public async Task KickAllUsersAsync(CancellationToken ct = default)
 		{
+			if (UserList.Count == 0)
+				return;
+
 			var users = UserList.ToArray();
-			UserList.Clear();
-			foreach (var user in users)
-			{
-				await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
-				user.CurrentLobby = null;
-			}
+
+			var tasks = users.Select((u) => LeaveUserExtAsync(u, true, ct));
+
+			await Task.WhenAll(tasks);
 
 			OnNumberUserChanged?.Invoke(this);
-
-			NotifyGameStateChangedAsync();
 		}
 
-		private async void NotifyGameStateChangedAsync()
+		private async void NotifyLobbyChangedAsync()
 		{
 			await _hubContext.Clients
 				.Group(Id.ToString())
-				.OnLobbyStateChanged(LobbyInfo.Make(this));
+				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this));
 		}
 	}
 }

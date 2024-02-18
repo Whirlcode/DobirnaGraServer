@@ -4,20 +4,17 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public class UserProfile : IProfile
+	public class UserProfile(IHubContext<GameHub, IGameClient> hubContext) : IProfile
 	{
-		private readonly string _connectionId;
+		public delegate void OnProfileChangedEvent();
 
-		public string ConnectionId => _connectionId;
+		public event OnProfileChangedEvent OnProfileChanged = null!;
 
-		private readonly WeakReference _weakContext;
+		private HubCallerContext? _userContext;
 
-		private HubCallerContext? UserContext => _weakContext.IsAlive ? _weakContext.Target as HubCallerContext : null;
-
-		private readonly IHubContext<GameHub, IGameClient> _hubContext;
+		public string ConnectionId => _userContext?.ConnectionId ?? string.Empty;
 
 		public Guid Id { get; private init; } = Guid.NewGuid();
-
 
 		private string _name = string.Empty;
 
@@ -27,7 +24,7 @@ namespace DobirnaGraServer.Game
 			set
 			{
 				_name = value;
-				NotifyOnProfileChanged();
+				OnProfileChanged?.Invoke();
 			}
 		}
 
@@ -37,7 +34,7 @@ namespace DobirnaGraServer.Game
 			get => _currentLobby;
 			set
 			{
-				if (UserContext == null)
+				if (_userContext == null)
 					throw new InvalidOperationException("User is dead!");
 				if (value != null && !value.HasUser(this))
 					throw new InvalidOperationException("The user is not in the group.");
@@ -45,31 +42,44 @@ namespace DobirnaGraServer.Game
 					throw new InvalidOperationException("The user is still in the group.");
 
 				_currentLobby = value;
-
-				NotifyOnProfileChanged();
 			}
 		}
 
-		public UserProfile(HubCallerContext callerContext, IHubContext<GameHub, IGameClient> hubContext)
+		public async Task Login(HubCallerContext callerContext)
 		{
-			_connectionId = callerContext.ConnectionId;
-			_weakContext = new WeakReference(callerContext);
-			_hubContext = hubContext;
+			_userContext = callerContext;
+
+			await OnLoggedIn();
 		}
 
-		public async Task AbandonAsync()
+		public async Task Logout()
 		{
+			await OnLogout();
+
 			if (CurrentLobby != null)
 			{
 				await CurrentLobby.LeaveUserAsync(this, default);
 			}
 			CurrentLobby = null;
-			_weakContext.Target = null;
+
+			_userContext = null;
 		}
 
-		public async void NotifyOnProfileChanged()
+		private async Task OnLoggedIn()
 		{
-			await _hubContext.Clients.Clients(_connectionId).OnProfileChanged(UserInfo.Make(this));
+			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.LoggedIn, ProfileData.Make(this));
+
+			OnProfileChanged += NotifyOnProfileChanged;
+		}
+
+		private async Task OnLogout()
+		{
+			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Logout, null);
+		}
+
+		private async void NotifyOnProfileChanged()
+		{
+			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Updated, ProfileData.Make(this));
 		}
 	}
 }

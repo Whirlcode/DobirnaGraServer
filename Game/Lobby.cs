@@ -20,11 +20,11 @@ namespace DobirnaGraServer.Game
 
 		public IEnumerable<IProfile> Users => UserList;
 
-		public IEnumerable<ITable> Tables => TablesList;
+		public IEnumerable<ITable> Places => PlacesList;
 
 		private List<UserProfile> UserList { get; init; } = [];
 
-		private List<PlayerTable> TablesList { get; init; } = [];
+		private List<PlayerPlace> PlacesList { get; init; } = [];
 
 		public IProfile? Master { get; private set; } = null;
 
@@ -58,20 +58,20 @@ namespace DobirnaGraServer.Game
 			return UserList.Any(e => e == user);
 		}
 
-		private bool FindSeat(UserProfile user, out PlayerTable? table)
+		private bool FindSeat(UserProfile user, out PlayerPlace? table)
 		{
-			var res = TablesList.FirstOrDefault(table => table.User == user);
+			var res = PlacesList.FirstOrDefault(table => table.User == user);
 			table = res;
 			return res != null;
 		}
 
 		public void SetNumberSeats(int number, bool groupSilent)
 		{
-			TablesList.Capacity = number;
-			if (number < TablesList.Count)
-				TablesList.RemoveRange(number, TablesList.Count - number);
-			else if (number > TablesList.Count)
-				TablesList.AddRange(Enumerable.Repeat(new PlayerTable(), number - TablesList.Count));
+			PlacesList.Capacity = number;
+			if (number < PlacesList.Count)
+				PlacesList.RemoveRange(number, PlacesList.Count - number);
+			else if (number > PlacesList.Count)
+				PlacesList.AddRange(Enumerable.Range(0, number - PlacesList.Count).Select(e => new PlayerPlace()));
 
 			if(!groupSilent)
 				NotifyLobbyChangedAsync();
@@ -85,7 +85,7 @@ namespace DobirnaGraServer.Game
 			if (Master != null)
 				throw new InvalidOperationException("The master's seat is already taken!");
 
-			if (FindSeat(user, out PlayerTable? table) && table != null)
+			if (FindSeat(user, out PlayerPlace? table) && table != null)
 				table.User = null;
 
 			Master = user;
@@ -98,16 +98,15 @@ namespace DobirnaGraServer.Game
 			if (!HasUser(user))
 				throw new InvalidOperationException("This user is not in the lobby");
 
-			if(index >= TablesList.Count)
+			if(index >= PlacesList.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			if (TablesList[index].User != null)
+			if (PlacesList[index].User != null)
 				throw new InvalidOperationException("The seat is already taken!");
 
-			if (FindSeat(user, out PlayerTable? table) && table != null)
-				table.User = null;
+			Unseat(user, true);
 
-			TablesList[index].User = user;
+			PlacesList[index].User = user;
 
 			NotifyLobbyChangedAsync();
 		}
@@ -117,7 +116,7 @@ namespace DobirnaGraServer.Game
 			if (Master == user)
 				Master = null;
 
-			if (FindSeat(user, out PlayerTable? table) && table != null)
+			if (FindSeat(user, out PlayerPlace? table) && table != null)
 				table.User = null;
 
 			if (!groupSilent)

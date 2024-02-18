@@ -111,7 +111,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 				Id = lobby.Id,
 				Name = lobby.Name,
 				InviteCode = lobby.InviteCode,
-				Places = lobby.Tables.Select(PlayerPlaceData.Make).ToList(),
+				Places = lobby.Places.Select(PlayerPlaceData.Make).ToList(),
 				Master = MasterData.Make(lobby.Master)
 			};
 		}

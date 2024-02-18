@@ -10,15 +10,13 @@ namespace DobirnaGraServer.Services
 
 		private readonly object _lockLobbies = new();
 
-		public async Task CreateLobbyAsync(UserProfile creator, string name, int initNumberTables, CancellationToken ct)
+		public async Task CreateLobbyAsync(UserProfile creator, string name, int initialNumberPlaces, CancellationToken ct)
 		{
 			Lobby instance = new(hubContext, name);
 
-			instance.SetNumberSeats(initNumberTables);
+			instance.SetNumberSeats(initialNumberPlaces, true);
 
-			await instance.JoinUserAsync(creator, ct);
-
-			instance.SeatMaster(creator);
+			await instance.JoinUserAsMasterAsync(creator, ct);
 
 			lock (_lockLobbies)
 			{

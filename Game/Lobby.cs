@@ -65,13 +65,16 @@ namespace DobirnaGraServer.Game
 			return res != null;
 		}
 
-		public void SetNumberSeats(int number)
+		public void SetNumberSeats(int number, bool groupSilent)
 		{
 			TablesList.Capacity = number;
 			if (number < TablesList.Count)
 				TablesList.RemoveRange(number, TablesList.Count - number);
 			else if (number > TablesList.Count)
 				TablesList.AddRange(Enumerable.Repeat(new PlayerTable(), number - TablesList.Count));
+
+			if(!groupSilent)
+				NotifyLobbyChangedAsync();
 		}
 
 		public void SeatMaster(UserProfile user)
@@ -85,7 +88,7 @@ namespace DobirnaGraServer.Game
 			if (FindSeat(user, out PlayerTable? table) && table != null)
 				table.User = null;
 
-			Master = null;
+			Master = user;
 
 			NotifyLobbyChangedAsync();
 		}
@@ -121,6 +124,23 @@ namespace DobirnaGraServer.Game
 				NotifyLobbyChangedAsync();
 		}
 
+		public async Task JoinUserAsMasterAsync(UserProfile user, CancellationToken ct)
+		{
+			if (Master != null)
+				throw new InvalidOperationException("The master's seat is already taken!");
+
+			try
+			{
+				Master = user;
+				await JoinUserAsync(user, ct);
+			}
+			catch (Exception e)
+			{
+				Master = null;
+				throw;
+			}
+		}
+
 		public async Task JoinUserAsync(UserProfile user, CancellationToken ct)
 		{
 			if (user.CurrentLobby is {} currentLobby)
@@ -128,8 +148,6 @@ namespace DobirnaGraServer.Game
 
 			UserList.Add(user);
 			user.CurrentLobby = this;
-
-			NotifyLobbyChangedAsync();
 
 			await _hubContext.Clients.Client(user.ConnectionId)
 				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));

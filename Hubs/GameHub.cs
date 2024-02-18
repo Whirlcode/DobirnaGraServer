@@ -67,7 +67,7 @@ namespace DobirnaGraServer.Hubs
 			{
 				Me.Name = actionMessage.UserName;
 
-				await game.CreateLobbyAsync(Me, actionMessage.NameLobby, actionMessage.InitCountTables, Context.ConnectionAborted);
+				await game.CreateLobbyAsync(Me, actionMessage.NameLobby, actionMessage.InitialNumberPlaces, Context.ConnectionAborted);
 			}
 			catch (Exception e)
 			{

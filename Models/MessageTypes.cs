@@ -16,7 +16,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required string UserName { get; init; }
 
-		public required int InitCountTables { get; init; }
+		public required int InitialNumberPlaces { get; init; }
 	}
 
 	public class UpdateProfileActionMessage
@@ -44,7 +44,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 		}
 	}
 
-	public class PlayerTableData
+	public class PlayerPlaceData
 	{
 		public Guid? UserId { get; init; }
 
@@ -54,9 +54,9 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required bool IsOccupied { get; init; }
 
-		public static PlayerTableData Make(ITable table)
+		public static PlayerPlaceData Make(ITable table)
 		{
-			return new PlayerTableData()
+			return new PlayerPlaceData()
 			{
 				UserId = table.User?.Id,
 				UserName = table.User?.Name,
@@ -100,7 +100,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required string InviteCode { get; init; }
 
-		public required IList<PlayerTableData> Tables { get; init; }
+		public required IList<PlayerPlaceData> Places { get; init; }
 
 		public required MasterData Master { get; init; }
 
@@ -111,7 +111,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 				Id = lobby.Id,
 				Name = lobby.Name,
 				InviteCode = lobby.InviteCode,
-				Tables = lobby.Tables.Select(PlayerTableData.Make).ToList(),
+				Places = lobby.Tables.Select(PlayerPlaceData.Make).ToList(),
 				Master = MasterData.Make(lobby.Master)
 			};
 		}

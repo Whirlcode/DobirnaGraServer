@@ -12,6 +12,6 @@
 
 		IEnumerable<ITable> Tables { get; }
 
-		IProfile Master { get; }
+		IProfile? Master { get; }
 	}
 }

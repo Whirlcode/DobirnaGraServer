@@ -38,5 +38,7 @@ namespace DobirnaGraServer.Services
 				await instance.Logout();
 			}
 		}
+
+		public int NumberUsers => _users.Count;
 	}
 }

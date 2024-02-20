@@ -1,7 +1,6 @@
 ﻿using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.MessageTypes;
 using Microsoft.AspNetCore.SignalR;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Game
 {

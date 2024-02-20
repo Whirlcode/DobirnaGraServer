@@ -55,5 +55,7 @@ namespace DobirnaGraServer.Services
 
 			await lobby.DisposeAsync();
 		}
+
+		public int NumberLobbies => Lobbies.Count;
 	}
 }

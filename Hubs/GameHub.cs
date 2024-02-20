@@ -151,6 +151,18 @@ namespace DobirnaGraServer.Hubs
 			}
 		}
 
+		public async Task Unseat()
+		{
+			try
+			{
+				Me.CurrentLobby?.Unseat(Me);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
 		public async Task ChangeScore(ChangeScoreActionMessage actionMessage)
 		{
 			try

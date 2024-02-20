@@ -127,7 +127,7 @@ namespace DobirnaGraServer.Game
 			if (Master != null)
 				throw new InvalidOperationException("The master's seat is already taken!");
 
-			Unseat(user, true);
+			UnseatImpl(user, true);
 
 			Master = user;
 
@@ -145,23 +145,36 @@ namespace DobirnaGraServer.Game
 			if (PlacesList[index].User != null)
 				throw new InvalidOperationException("The seat is already taken!");
 
-			Unseat(user, true);
+			UnseatImpl(user, true);
 
 			PlacesList[index].User = user;
 
 			NotifyLobbyChangedAsync();
 		}
 
-		private void Unseat(UserProfile user, bool groupSilent)
+		private void UnseatImpl(UserProfile user, bool groupSilent)
 		{
+			bool changed = false;
+
 			if (Master == user)
+			{
 				Master = null;
+				changed = true;
+			}
 
 			if (FindSeat(user, out PlayerPlace? table) && table != null)
+			{
 				table.User = null;
+				changed = true;
+			}
 
-			if (!groupSilent)
+			if (!groupSilent && changed)
 				NotifyLobbyChangedAsync();
+		}
+
+		public void Unseat(UserProfile user)
+		{
+			UnseatImpl(user, false);
 		}
 
 		public async Task JoinUserAsMasterAsync(UserProfile user, CancellationToken ct)
@@ -202,7 +215,7 @@ namespace DobirnaGraServer.Game
 
 		private async Task LeaveUserExtAsync(UserProfile user, bool groupSilent, CancellationToken ct)
 		{
-			Unseat(user, true);
+			UnseatImpl(user, true);
 
 			UserList.Remove(user);
 			user.CurrentLobby = null;

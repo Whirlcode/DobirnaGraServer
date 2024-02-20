@@ -72,7 +72,11 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			PlacesList.Capacity = number;
+			if (PlacesList.Capacity < number)
+			{
+				PlacesList.Capacity = number;
+			}
+
 			if (number < PlacesList.Count)
 			{
 				PlacesList.Sort((l, r) =>

@@ -55,6 +55,7 @@ namespace DobirnaGraServer.Game
 			{
 				_avatar?.Dispose();
 				_avatar = value;
+				OnProfileChanged?.Invoke();
 			}
 			get => _avatar;
 		}

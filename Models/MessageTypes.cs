@@ -58,6 +58,8 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public required int Score { get; init; }
 
+		public string? ImageId { get; init; }
+
 		public required bool IsOccupied { get; init; }
 
 		public static PlayerPlaceData Make(IPlace place)
@@ -67,6 +69,7 @@ namespace DobirnaGraServer.Models.MessageTypes
 				UserId = place.User?.Id,
 				UserName = place.User?.Name,
 				Score = place.Score,
+				ImageId = $"{place.User?.Avatar?.Id}",
 				IsOccupied = place.User != null
 			};
 		}
@@ -78,6 +81,8 @@ namespace DobirnaGraServer.Models.MessageTypes
 
 		public string? UserName { get; init; } = string.Empty;
 
+		public string? ImageId { get; init; }
+
 		public required bool IsOccupied { get; init; }
 
 		public static MasterData Make(IProfile? profile)
@@ -86,7 +91,8 @@ namespace DobirnaGraServer.Models.MessageTypes
 			{
 				UserId = profile?.Id,
 				UserName = profile?.Name,
-				IsOccupied = profile != null
+				IsOccupied = profile != null,
+				ImageId = $"{profile?.Avatar?.Id}",
 			};
 		}
 	}

@@ -34,7 +34,7 @@ namespace DobirnaGraServer.Hubs
 
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
-			await _profileService.UnregisterAsync(Context);
+			await _profileService.UnregisterAsync(Me.Id);
 
 			await base.OnDisconnectedAsync(exception);
 		}

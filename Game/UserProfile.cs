@@ -1,4 +1,5 @@
-﻿using DobirnaGraServer.Hubs;
+﻿using DobirnaGraServer.Assets;
+using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.MessageTypes;
 using Microsoft.AspNetCore.SignalR;
 
@@ -47,6 +48,18 @@ namespace DobirnaGraServer.Game
 			}
 		}
 
+		private ScopeFile? _avatar;
+		public ScopeFile? Avatar
+		{
+			set
+			{
+				_avatar?.Dispose();
+				_avatar = value;
+				OnProfileChanged?.Invoke();
+			}
+			get => _avatar;
+		}
+
 		public async Task Login(HubCallerContext callerContext)
 		{
 			_userContext = callerContext;
@@ -63,7 +76,7 @@ namespace DobirnaGraServer.Game
 				await CurrentLobby.LeaveUserAsync(this, default);
 			}
 			CurrentLobby = null;
-
+			Avatar = null;
 			_userContext = null;
 		}
 

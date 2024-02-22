@@ -6,7 +6,7 @@ namespace DobirnaGraServer.Services
 {
 	public class ProfileService(IHubContext<GameHub, IGameClient> hubContext)
 	{
-		private readonly Dictionary<string, UserProfile> _users = new();
+		private readonly Dictionary<Guid, UserProfile> _users = new();
 
 		private readonly object _lockUsers = new();
 
@@ -16,7 +16,7 @@ namespace DobirnaGraServer.Services
 
 			lock (_lockUsers)
 			{
-				_users.Add(caller.ConnectionId, profile);
+				_users.Add(profile.Id, profile);
 			}
 
 			await profile.Login(caller);
@@ -24,19 +24,24 @@ namespace DobirnaGraServer.Services
 			return profile;
 		}
 
-		public async Task UnregisterAsync(HubCallerContext caller)
+		public async Task UnregisterAsync(Guid id)
 		{
 			UserProfile? instance;
 
 			lock (_lockUsers)
 			{
-				_users.Remove(caller.ConnectionId, out instance);
+				_users.Remove(id, out instance);
 			}
 
 			if (instance != null)
 			{
 				await instance.Logout();
 			}
+		}
+
+		public bool FindUser(Guid id, out UserProfile? user)
+		{
+			return _users.TryGetValue(id, out user);
 		}
 
 		public int NumberUsers => _users.Count;

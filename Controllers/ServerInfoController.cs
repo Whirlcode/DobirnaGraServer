@@ -9,12 +9,16 @@ namespace DobirnaGraServer.Controllers
 	public class ServerInfoController : ControllerBase
 	{
 		[HttpGet]
-		public ActionResult<ServerInfoModel> Get([FromServices] ProfileService profileService, [FromServices] GameService gameService)
+		public ActionResult<ServerInfoModel> Get(
+			[FromServices] ProfileService profileService,
+			[FromServices] GameService gameService,
+			[FromServices] ResourceService resourceService)
 		{
 			return new ServerInfoModel
 			{
 				NumberUsers = profileService.NumberUsers,
 				NumberLobbies = gameService.NumberLobbies,
+				NumberImages = resourceService.NumberImages
 			};
 		}
 	}

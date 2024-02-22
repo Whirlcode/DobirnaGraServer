@@ -2,8 +2,10 @@
 {
 	public class ServerInfoModel
 	{
-		public required int NumberLobbies { get; set; }
+		public required int NumberLobbies { get; init; }
 
-		public required int NumberUsers { get; set; }
+		public required int NumberUsers { get; init; }
+
+		public required int NumberImages { get; init; }
 	}
 }

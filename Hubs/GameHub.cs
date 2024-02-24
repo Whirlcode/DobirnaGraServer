@@ -1,5 +1,5 @@
 ﻿using DobirnaGraServer.Game;
-using DobirnaGraServer.Models.MessageTypes;
+using DobirnaGraServer.Models.GameRPC;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;

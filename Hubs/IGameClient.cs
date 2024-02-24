@@ -1,4 +1,4 @@
-﻿using DobirnaGraServer.Models.MessageTypes;
+﻿using DobirnaGraServer.Models.GameRPC;
 
 namespace DobirnaGraServer.Hubs
 {

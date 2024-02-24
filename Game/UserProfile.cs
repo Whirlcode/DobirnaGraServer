@@ -1,6 +1,6 @@
 ﻿using DobirnaGraServer.Assets;
 using DobirnaGraServer.Hubs;
-using DobirnaGraServer.Models.MessageTypes;
+using DobirnaGraServer.Models.GameRPC;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game

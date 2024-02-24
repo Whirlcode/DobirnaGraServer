@@ -1,55 +1,7 @@
 ﻿using DobirnaGraServer.Game;
 
-namespace DobirnaGraServer.Models.MessageTypes
+namespace DobirnaGraServer.Models.GameRPC
 {
-	public class JoinLobbyActionMessage
-	{
-		public required string InviteCode { get; init; }
-
-		public required string UserName { get; init; }
-	}
-
-	public class CreateLobbyActionMessage
-	{
-		public required string NameLobby { get; init; }
-
-		public required string UserName { get; init; }
-
-		public required int InitialNumberPlaces { get; init; }
-	}
-
-	public class UpdateProfileActionMessage
-	{
-		public string? Name { get; init; }
-	}
-
-	public class ChangeScoreActionMessage
-	{
-		public required int TargetPlaceIndex { get; init; }
-
-		public required int NewScore { get; init; }
-	}
-
-	public enum ProfileAction
-	{
-		LoggedIn,
-		Updated,
-		Logout
-	}
-
-	public class ProfileData
-	{
-		public required Guid Id { get; init; }
-
-		public static ProfileData Make(IProfile me)
-		{
-			return new ProfileData()
-			{
-				Id = me.Id,
-			};
-		}
-	}
-
 	public class PlayerPlaceData
 	{
 		public Guid? UserId { get; init; }

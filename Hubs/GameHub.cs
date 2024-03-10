@@ -3,6 +3,7 @@ using DobirnaGraServer.Models.GameRPC;
 using DobirnaGraServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Text.Json;
 
 namespace DobirnaGraServer.Hubs
 {
@@ -168,6 +169,18 @@ namespace DobirnaGraServer.Hubs
 			try
 			{
 				Me.CurrentLobby?.ChangeScore(Me, actionMessage.TargetPlaceIndex, actionMessage.NewScore);
+			}
+			catch (Exception e)
+			{
+				await HandleServerException(e);
+			}
+		}
+
+		public async Task Interact()
+		{
+			try
+			{
+				Me.CurrentLobby?.Interact(Me);
 			}
 			catch (Exception e)
 			{

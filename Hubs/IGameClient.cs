@@ -9,6 +9,7 @@ namespace DobirnaGraServer.Hubs
 
 		Task OnLobbyChanged(LobbyAction action, LobbyData? info);
 
+		Task OnGameStateChanged(GameStateAction action, BaseStateData? info);
 
 		Task OnServerError(string err);
 	}

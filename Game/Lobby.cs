@@ -1,4 +1,5 @@
-﻿using DobirnaGraServer.Hubs;
+﻿using DobirnaGraServer.Game.State;
+using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.GameRPC;
 using Microsoft.AspNetCore.SignalR;
 
@@ -28,6 +29,8 @@ namespace DobirnaGraServer.Game
 
 		public IProfile? Master { get; private set; } = null;
 
+		private StateMachine _gameStateMachine = new();
+
 		public Lobby(IHubContext<GameHub, IGameClient> hubContext, string name, int initialNumberPlaces)
 		{
 			_hubContext = hubContext;
@@ -36,6 +39,14 @@ namespace DobirnaGraServer.Game
 			InviteCode = new InviteCode(Id);
 
 			PlacesList = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
+
+			_gameStateMachine.DefineState(new IdleGameState{ OwnerLobby = this });
+			_gameStateMachine.DefineState(new RoundGameState{ OwnerLobby = this });
+			_gameStateMachine.SetInitState<IdleGameState>();
+			_gameStateMachine.DefineTransition<IdleGameState, RoundGameState>((state, transitAction) =>
+			{
+				state.OnStartGame += transitAction;
+			});
 		}
 
 		~Lobby()
@@ -180,6 +191,21 @@ namespace DobirnaGraServer.Game
 			UnseatImpl(user, false);
 		}
 
+		public void Interact(UserProfile caller)
+		{
+			if (_gameStateMachine.CurrentState is IdleGameState idleState)
+			{
+				if (caller == Master)
+				{
+					idleState.StartGame();
+				}
+				else
+				{
+					idleState.ToggleReady(caller);
+				}
+			}
+		}
+
 		public async Task JoinUserAsMasterAsync(UserProfile user, CancellationToken ct)
 		{
 			if (Master != null)
@@ -207,6 +233,12 @@ namespace DobirnaGraServer.Game
 
 			await _hubContext.Clients.Client(user.ConnectionId)
 				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));
+
+			if (_gameStateMachine.CurrentState != null)
+			{
+				await _hubContext.Clients.Client(user.ConnectionId)
+					.OnGameStateChanged(GameStateAction.Entered, _gameStateMachine.CurrentState.GetStateData());
+			}
 
 			NotifyLobbyChangedAsync();
 
@@ -259,6 +291,14 @@ namespace DobirnaGraServer.Game
 			await _hubContext.Clients
 				.Group(Id.ToString())
 				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this))
+				.ConfigureAwait(false);
+		}
+
+		public async void NotifyGameStateChangedAsync(BaseStateData? info, bool isNewState)
+		{
+			await _hubContext.Clients
+				.Group(Id.ToString())
+				.OnGameStateChanged(isNewState ? GameStateAction.Entered : GameStateAction.Updated, info)
 				.ConfigureAwait(false);
 		}
 	}

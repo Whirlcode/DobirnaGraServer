@@ -7,9 +7,15 @@ namespace DobirnaGraServer.Game
 {
 	public sealed class Lobby : ILobby, IDisposable, IAsyncDisposable
 	{
-		public delegate void EventNumberUserChanged(Lobby lobby);
+		public enum UserAction
+		{
+			Joined,
+			Leaved
+		}
 
-		public event EventNumberUserChanged? OnNumberUserChanged;
+		public delegate void EventUserChanged(Lobby lobby, IProfile profile, UserAction action);
+
+		public event EventUserChanged? OnUserChanged;
 
 		public Guid Id { get; init; }
 
@@ -245,7 +251,7 @@ namespace DobirnaGraServer.Game
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
 			user.OnProfileChanged += NotifyLobbyChangedAsync;
 
-			OnNumberUserChanged?.Invoke(this);
+			OnUserChanged?.Invoke(this, user, UserAction.Joined);
 		}
 
 		private async Task LeaveUserExtAsync(UserProfile user, bool groupSilent, CancellationToken ct)
@@ -264,7 +270,7 @@ namespace DobirnaGraServer.Game
 			if(!groupSilent)
 				NotifyLobbyChangedAsync();
 
-			OnNumberUserChanged?.Invoke(this);
+			OnUserChanged?.Invoke(this, user, UserAction.Leaved);
 		}
 
 		public Task LeaveUserAsync(UserProfile user, CancellationToken ct)
@@ -282,8 +288,6 @@ namespace DobirnaGraServer.Game
 			var tasks = users.Select((u) => LeaveUserExtAsync(u, true, ct));
 
 			await Task.WhenAll(tasks);
-
-			OnNumberUserChanged?.Invoke(this);
 		}
 
 		private async void NotifyLobbyChangedAsync()

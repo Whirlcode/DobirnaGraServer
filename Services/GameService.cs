@@ -21,7 +21,7 @@ namespace DobirnaGraServer.Services
 				Lobbies.Add(instance.Id, instance);
 			}
 
-			instance.OnNumberUserChanged += OnNumberUserChanged;
+			instance.OnUserChanged += OnUserChanged;
 		}
 
 		public async Task JoinLobbyAsync(UserProfile user, string inviteCode, CancellationToken ct)
@@ -36,7 +36,7 @@ namespace DobirnaGraServer.Services
 			}
 		}
 
-		private void OnNumberUserChanged(Lobby lobby)
+		private void OnUserChanged(Lobby lobby, IProfile profile, Lobby.UserAction action)
 		{
 			if (!lobby.Users.Any())
 			{
@@ -46,7 +46,7 @@ namespace DobirnaGraServer.Services
 
 		private async void DestroyLobby(Lobby lobby)
 		{
-			lobby.OnNumberUserChanged -= OnNumberUserChanged;
+			lobby.OnUserChanged -= OnUserChanged;
 
 			lock (_lockLobbies)
 			{

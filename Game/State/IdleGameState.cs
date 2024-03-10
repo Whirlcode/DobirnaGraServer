@@ -10,9 +10,11 @@ namespace DobirnaGraServer.Game.State
 
 		public override void OnEnter()
 		{
+			ReadyUsers.Clear();
+
 			base.OnEnter();
 
-			ReadyUsers.Clear();
+			OwnerLobby.OnUserChanged += OnUserChanged;
 		}
 
 		public override void OnExit()
@@ -20,6 +22,8 @@ namespace DobirnaGraServer.Game.State
 			base.OnExit();
 
 			ReadyUsers.Clear();
+
+			OwnerLobby.OnUserChanged -= OnUserChanged;
 		}
 
 		public override BaseStateData GetStateData()
@@ -47,6 +51,14 @@ namespace DobirnaGraServer.Game.State
 		public void StartGame()
 		{
 			OnStartGame?.Invoke();
+		}
+
+		private void OnUserChanged(Lobby lobby, IProfile profile, Lobby.UserAction action)
+		{
+			if (action == Lobby.UserAction.Leaved)
+			{
+				ReadyUsers.Remove(profile);
+			}
 		}
 	}
 }

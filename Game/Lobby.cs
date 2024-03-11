@@ -2,6 +2,7 @@
 using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.GameRPC;
 using Microsoft.AspNetCore.SignalR;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Game
 {
@@ -238,7 +239,7 @@ namespace DobirnaGraServer.Game
 			user.CurrentLobby = this;
 
 			await _hubContext.Clients.Client(user.ConnectionId)
-				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));
+				.OnLobbyChanged(LobbyAction.Joined, ConvertToRpcData());
 
 			if (_gameStateMachine.CurrentState != null)
 			{
@@ -290,11 +291,29 @@ namespace DobirnaGraServer.Game
 			await Task.WhenAll(tasks);
 		}
 
+		private LobbyData ConvertToRpcData()
+		{
+			return new LobbyData
+			{
+				Id = Id,
+				Name = Name,
+				InviteCode = InviteCode,
+				Places = Places.Select(p => p.ConvertToRpcData()).ToList(),
+				Master = new MasterData
+				{
+					UserId = Master?.Id,
+					UserName = Master?.Name,
+					IsOccupied = Master != null,
+					ImageId = $"{Master?.Avatar?.Id}",
+				}
+			};
+		}
+
 		private async void NotifyLobbyChangedAsync()
 		{
 			await _hubContext.Clients
 				.Group(Id.ToString())
-				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this))
+				.OnLobbyChanged(LobbyAction.Updated, ConvertToRpcData())
 				.ConfigureAwait(false);
 		}
 

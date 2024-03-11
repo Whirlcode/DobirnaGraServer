@@ -82,7 +82,7 @@ namespace DobirnaGraServer.Game
 
 		private async Task OnLoggedIn()
 		{
-			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.LoggedIn, ProfileData.Make(this));
+			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.LoggedIn, ConvertToRpcData());
 
 			OnProfileChanged += NotifyOnProfileChanged;
 		}
@@ -94,10 +94,18 @@ namespace DobirnaGraServer.Game
 			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Logout, null);
 		}
 
+		private ProfileData ConvertToRpcData()
+		{
+			return new ProfileData
+			{
+				Id = Id
+			};
+		}
+
 		private async void NotifyOnProfileChanged()
 		{
 			await hubContext.Clients.Clients(ConnectionId)
-				.OnProfileChanged(ProfileAction.Updated, ProfileData.Make(this))
+				.OnProfileChanged(ProfileAction.Updated, ConvertToRpcData())
 				.ConfigureAwait(false);
 		}
 	}

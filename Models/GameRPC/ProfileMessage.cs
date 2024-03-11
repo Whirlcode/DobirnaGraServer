@@ -9,16 +9,8 @@ namespace DobirnaGraServer.Models.GameRPC
 		Logout
 	}
 
-	public class ProfileData
+	public readonly struct ProfileData
 	{
 		public required Guid Id { get; init; }
-
-		public static ProfileData Make(IProfile me)
-		{
-			return new ProfileData()
-			{
-				Id = me.Id,
-			};
-		}
 	}
 }

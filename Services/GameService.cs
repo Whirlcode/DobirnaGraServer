@@ -36,7 +36,7 @@ namespace DobirnaGraServer.Services
 			}
 		}
 
-		private void OnUserChanged(Lobby lobby, IProfile profile, Lobby.UserAction action)
+		private void OnUserChanged(Lobby lobby, UserProfile user, Lobby.UserAction action)
 		{
 			if (!lobby.Users.Any())
 			{

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public sealed class Lobby : ILobby, IDisposable, IAsyncDisposable
+	public sealed class Lobby : IDisposable, IAsyncDisposable
 	{
 		public enum UserAction
 		{
@@ -13,7 +13,7 @@ namespace DobirnaGraServer.Game
 			Leaved
 		}
 
-		public delegate void EventUserChanged(Lobby lobby, IProfile profile, UserAction action);
+		public delegate void EventUserChanged(Lobby lobby, UserProfile profile, UserAction action);
 
 		public event EventUserChanged? OnUserChanged;
 
@@ -21,19 +21,27 @@ namespace DobirnaGraServer.Game
 
 		private readonly IHubContext<GameHub, IGameClient> _hubContext;
 
+		public IGameClient RpcClients()
+		{
+			return _hubContext.Clients.Group(Id.ToString());
+		}
+
+		public IGameClient RpcClient(UserProfile user)
+		{
+			return _hubContext.Clients.Client(user.ConnectionId);
+		}
+
 		public string Name { get; init; }
 
 		public InviteCode InviteCode { get; init; }
 
-		public IEnumerable<IProfile> Users => UserList;
+		private readonly List<UserProfile> _users = [];
+		public IReadOnlyList<UserProfile> Users => _users;
 
-		public IEnumerable<IPlace> Places => PlacesList;
+		private readonly List<PlayerPlace> _places;
+		public IReadOnlyList<PlayerPlace> Places => _places;
 
-		private List<UserProfile> UserList { get; init; } = [];
-
-		private List<PlayerPlace> PlacesList { get; init; } = [];
-
-		public IProfile? Master { get; private set; } = null;
+		private UserProfile? Master { get; set; }
 
 		private StateMachine _gameStateMachine = new();
 
@@ -44,7 +52,7 @@ namespace DobirnaGraServer.Game
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
 
-			PlacesList = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
+			_places = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
 
 			_gameStateMachine.DefineState(new IdleGameState{ OwnerLobby = this });
 			_gameStateMachine.DefineState(new RoundGameState{ OwnerLobby = this });
@@ -73,12 +81,12 @@ namespace DobirnaGraServer.Game
 
 		public bool HasUser(UserProfile user)
 		{
-			return UserList.Any(e => e == user);
+			return _users.Any(e => e == user);
 		}
 
 		private bool FindSeat(UserProfile user, out PlayerPlace? table)
 		{
-			var res = PlacesList.FirstOrDefault(table => table.User == user);
+			var res = _places.FirstOrDefault(table => table.User == user);
 			table = res;
 			return res != null;
 		}
@@ -88,14 +96,14 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (PlacesList.Capacity < number)
+			if (_places.Capacity < number)
 			{
-				PlacesList.Capacity = number;
+				_places.Capacity = number;
 			}
 
-			if (number < PlacesList.Count)
+			if (number < _places.Count)
 			{
-				PlacesList.Sort((l, r) =>
+				_places.Sort((l, r) =>
 				{
 					if (l.User == null && r.User != null)
 						return 1;
@@ -103,14 +111,14 @@ namespace DobirnaGraServer.Game
 						return -1;
 					return 0;
 				});
-				PlacesList.RemoveRange(number, PlacesList.Count - number);
+				_places.RemoveRange(number, _places.Count - number);
 			}
-			else if (number > PlacesList.Count)
+			else if (number > _places.Count)
 			{
-				PlacesList.AddRange(Enumerable.Range(0, number - PlacesList.Count).Select(e => new PlayerPlace()));
+				_places.AddRange(Enumerable.Range(0, number - _places.Count).Select(e => new PlayerPlace()));
 			}
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void RemovePlace(UserProfile caller, int index)
@@ -118,12 +126,12 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (index >= PlacesList.Count)
+			if (index >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			PlacesList.RemoveAt(index);
+			_places.RemoveAt(index);
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void ChangeScore(UserProfile caller, int placeIndex, int newScore)
@@ -131,12 +139,12 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (placeIndex >= PlacesList.Count)
+			if (placeIndex >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			PlacesList[placeIndex].Score = newScore;
+			_places[placeIndex].Score = newScore;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void SeatMaster(UserProfile user)
@@ -151,7 +159,7 @@ namespace DobirnaGraServer.Game
 
 			Master = user;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void Seat(UserProfile user, int index)
@@ -159,17 +167,17 @@ namespace DobirnaGraServer.Game
 			if (!HasUser(user))
 				throw new InvalidOperationException("This user is not in the lobby");
 
-			if(index >= PlacesList.Count)
+			if(index >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			if (PlacesList[index].User != null)
+			if (_places[index].User != null)
 				throw new InvalidOperationException("The seat is already taken!");
 
 			UnseatImpl(user, true);
 
-			PlacesList[index].User = user;
+			_places[index].User = user;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		private void UnseatImpl(UserProfile user, bool groupSilent)
@@ -189,7 +197,7 @@ namespace DobirnaGraServer.Game
 			}
 
 			if (!groupSilent && changed)
-				NotifyLobbyChangedAsync();
+				NotifyLobbyChanged();
 		}
 
 		public void Unseat(UserProfile user)
@@ -234,22 +242,22 @@ namespace DobirnaGraServer.Game
 			if (user.CurrentLobby is {} currentLobby)
 				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
 
-			UserList.Add(user);
+			_users.Add(user);
 			user.CurrentLobby = this;
 
-			await _hubContext.Clients.Client(user.ConnectionId)
-				.OnLobbyChanged(LobbyAction.Joined, LobbyData.Make(this));
+			IGameClient rpcClient = RpcClient(user);
+
+			await rpcClient.OnLobbyChanged(LobbyAction.Joined, ConvertToRpcData());
 
 			if (_gameStateMachine.CurrentState != null)
 			{
-				await _hubContext.Clients.Client(user.ConnectionId)
-					.OnGameStateChanged(GameStateAction.Entered, _gameStateMachine.CurrentState.GetStateData());
+				await rpcClient.OnGameStateChanged(GameStateAction.Entered, _gameStateMachine.CurrentState.GetStateData());
 			}
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
-			user.OnProfileChanged += NotifyLobbyChangedAsync;
+			user.OnProfileChanged += NotifyLobbyChanged;
 
 			OnUserChanged?.Invoke(this, user, UserAction.Joined);
 		}
@@ -258,17 +266,16 @@ namespace DobirnaGraServer.Game
 		{
 			UnseatImpl(user, true);
 
-			UserList.Remove(user);
+			_users.Remove(user);
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
-			user.OnProfileChanged -= NotifyLobbyChangedAsync;
+			user.OnProfileChanged -= NotifyLobbyChanged;
 
-			await _hubContext.Clients.Client(user.ConnectionId)
-				.OnLobbyChanged(LobbyAction.Leaved, null);
+			await RpcClient(user).OnLobbyChanged(LobbyAction.Leaved, null);
 
 			if(!groupSilent)
-				NotifyLobbyChangedAsync();
+				NotifyLobbyChanged();
 
 			OnUserChanged?.Invoke(this, user, UserAction.Leaved);
 		}
@@ -280,29 +287,38 @@ namespace DobirnaGraServer.Game
 
 		public async Task KickAllUsersAsync(CancellationToken ct = default)
 		{
-			if (UserList.Count == 0)
+			if (_users.Count == 0)
 				return;
 
-			var users = UserList.ToArray();
+			var users = _users.ToArray();
 
 			var tasks = users.Select((u) => LeaveUserExtAsync(u, true, ct));
 
 			await Task.WhenAll(tasks);
 		}
 
-		private async void NotifyLobbyChangedAsync()
+		private LobbyData ConvertToRpcData()
 		{
-			await _hubContext.Clients
-				.Group(Id.ToString())
-				.OnLobbyChanged(LobbyAction.Updated, LobbyData.Make(this))
-				.ConfigureAwait(false);
+			return new LobbyData
+			{
+				Id = Id,
+				Name = Name,
+				InviteCode = InviteCode,
+				Places = Places.Select(p => p.ConvertToRpcData()).ToList(),
+				Master = new MasterData
+				{
+					UserId = Master?.Id,
+					UserName = Master?.Name,
+					IsOccupied = Master != null,
+					ImageId = $"{Master?.Avatar?.Id}",
+				}
+			};
 		}
 
-		public async void NotifyGameStateChangedAsync(BaseStateData? info, bool isNewState)
+		private void NotifyLobbyChanged()
 		{
-			await _hubContext.Clients
-				.Group(Id.ToString())
-				.OnGameStateChanged(isNewState ? GameStateAction.Entered : GameStateAction.Updated, info)
+			RpcClients()
+				.OnLobbyChanged(LobbyAction.Updated, ConvertToRpcData())
 				.ConfigureAwait(false);
 		}
 	}

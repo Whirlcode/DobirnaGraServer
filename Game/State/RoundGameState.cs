@@ -16,7 +16,17 @@ namespace DobirnaGraServer.Game.State
 
 		public override BaseStateData GetStateData()
 		{
-			throw new NotImplementedException();
+			return new RoundStateData
+			{
+				Questions = new()
+				{
+					{ "Game", [100, 200, 300, 400, 500] },
+					{ "Music", [100, 200, 300, 400, 500] },
+					{ "C++?", [100, 200, 300, 400, 500] },
+					{ "JavaChad", [100, 200, 300, 400, 500, 600, 700] },
+				},
+				Electioneer = OwnerLobby.Users.Last().Id
+			};
 		}
 	}
 }

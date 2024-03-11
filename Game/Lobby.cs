@@ -21,6 +21,16 @@ namespace DobirnaGraServer.Game
 
 		private readonly IHubContext<GameHub, IGameClient> _hubContext;
 
+		public IGameClient RpcClients()
+		{
+			return _hubContext.Clients.Group(Id.ToString());
+		}
+
+		public IGameClient RpcClient(UserProfile user)
+		{
+			return _hubContext.Clients.Client(user.ConnectionId);
+		}
+
 		public string Name { get; init; }
 
 		public InviteCode InviteCode { get; init; }
@@ -108,7 +118,7 @@ namespace DobirnaGraServer.Game
 				_places.AddRange(Enumerable.Range(0, number - _places.Count).Select(e => new PlayerPlace()));
 			}
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void RemovePlace(UserProfile caller, int index)
@@ -121,7 +131,7 @@ namespace DobirnaGraServer.Game
 
 			_places.RemoveAt(index);
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void ChangeScore(UserProfile caller, int placeIndex, int newScore)
@@ -134,7 +144,7 @@ namespace DobirnaGraServer.Game
 
 			_places[placeIndex].Score = newScore;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void SeatMaster(UserProfile user)
@@ -149,7 +159,7 @@ namespace DobirnaGraServer.Game
 
 			Master = user;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		public void Seat(UserProfile user, int index)
@@ -167,7 +177,7 @@ namespace DobirnaGraServer.Game
 
 			_places[index].User = user;
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 		}
 
 		private void UnseatImpl(UserProfile user, bool groupSilent)
@@ -187,7 +197,7 @@ namespace DobirnaGraServer.Game
 			}
 
 			if (!groupSilent && changed)
-				NotifyLobbyChangedAsync();
+				NotifyLobbyChanged();
 		}
 
 		public void Unseat(UserProfile user)
@@ -235,19 +245,19 @@ namespace DobirnaGraServer.Game
 			_users.Add(user);
 			user.CurrentLobby = this;
 
-			await _hubContext.Clients.Client(user.ConnectionId)
-				.OnLobbyChanged(LobbyAction.Joined, ConvertToRpcData());
+			IGameClient rpcClient = RpcClient(user);
+
+			await rpcClient.OnLobbyChanged(LobbyAction.Joined, ConvertToRpcData());
 
 			if (_gameStateMachine.CurrentState != null)
 			{
-				await _hubContext.Clients.Client(user.ConnectionId)
-					.OnGameStateChanged(GameStateAction.Entered, _gameStateMachine.CurrentState.GetStateData());
+				await rpcClient.OnGameStateChanged(GameStateAction.Entered, _gameStateMachine.CurrentState.GetStateData());
 			}
 
-			NotifyLobbyChangedAsync();
+			NotifyLobbyChanged();
 
 			await _hubContext.Groups.AddToGroupAsync(user.ConnectionId, Id.ToString(), ct);
-			user.OnProfileChanged += NotifyLobbyChangedAsync;
+			user.OnProfileChanged += NotifyLobbyChanged;
 
 			OnUserChanged?.Invoke(this, user, UserAction.Joined);
 		}
@@ -260,13 +270,12 @@ namespace DobirnaGraServer.Game
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
-			user.OnProfileChanged -= NotifyLobbyChangedAsync;
+			user.OnProfileChanged -= NotifyLobbyChanged;
 
-			await _hubContext.Clients.Client(user.ConnectionId)
-				.OnLobbyChanged(LobbyAction.Leaved, null);
+			await RpcClient(user).OnLobbyChanged(LobbyAction.Leaved, null);
 
 			if(!groupSilent)
-				NotifyLobbyChangedAsync();
+				NotifyLobbyChanged();
 
 			OnUserChanged?.Invoke(this, user, UserAction.Leaved);
 		}
@@ -306,19 +315,10 @@ namespace DobirnaGraServer.Game
 			};
 		}
 
-		private async void NotifyLobbyChangedAsync()
+		private void NotifyLobbyChanged()
 		{
-			await _hubContext.Clients
-				.Group(Id.ToString())
+			RpcClients()
 				.OnLobbyChanged(LobbyAction.Updated, ConvertToRpcData())
-				.ConfigureAwait(false);
-		}
-
-		public async void NotifyGameStateChangedAsync(BaseStateData? info, bool isNewState)
-		{
-			await _hubContext.Clients
-				.Group(Id.ToString())
-				.OnGameStateChanged(isNewState ? GameStateAction.Entered : GameStateAction.Updated, info)
 				.ConfigureAwait(false);
 		}
 	}

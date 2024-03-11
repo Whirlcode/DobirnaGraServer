@@ -21,7 +21,9 @@ namespace DobirnaGraServer.Game.State
 
 		public virtual void OnEnter()
 		{
-			OwnerLobby.NotifyGameStateChangedAsync(GetStateData(), true);
+			OwnerLobby.RpcClients()
+				.OnGameStateChanged(GameStateAction.Entered, GetStateData())
+				.ConfigureAwait(false);
 		}
 
 		public virtual void OnExit()
@@ -33,7 +35,9 @@ namespace DobirnaGraServer.Game.State
 
 		protected void NotifyStateChanged()
 		{
-			OwnerLobby.NotifyGameStateChangedAsync(GetStateData(), false);
+			OwnerLobby.RpcClients()
+				.OnGameStateChanged(GameStateAction.Updated, GetStateData())
+				.ConfigureAwait(false);
 		}
 	}
 }

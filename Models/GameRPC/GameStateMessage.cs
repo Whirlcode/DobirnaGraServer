@@ -12,22 +12,13 @@ namespace DobirnaGraServer.Models.GameRPC
 	[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
 	[JsonDerivedType(typeof(BaseStateData), typeDiscriminator: "base")]
 	[JsonDerivedType(typeof(IdleStateData), typeDiscriminator: "idle")]
-	public class BaseStateData
+	public class BaseStateData(string type)
 	{
-		public string Type { get; init; } // hack for .NET 8, because SignalR not support JsonPolymorphic
-
-		protected BaseStateData(string type)
-		{
-			Type = type;
-		}
+		public string Type { get; init; } = type; // hack for .NET 8, because SignalR not support JsonPolymorphic
 	}
 
-	public class IdleStateData : BaseStateData
+	public class IdleStateData() : BaseStateData("idle")
 	{
-		public IdleStateData()
-			: base("idle")
-		{}
-
 		public required List<Guid> ReadyUsers { get; init; }
 	}
 }

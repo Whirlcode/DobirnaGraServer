@@ -94,9 +94,9 @@ namespace DobirnaGraServer.Game
 			await hubContext.Clients.Clients(ConnectionId).OnProfileChanged(ProfileAction.Logout, null);
 		}
 
-		private ProfileData ConvertToRpcData()
+		private ProfileDataRpcMessage ConvertToRpcData()
 		{
-			return new ProfileData
+			return new ProfileDataRpcMessage
 			{
 				Id = Id
 			};

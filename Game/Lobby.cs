@@ -297,15 +297,15 @@ namespace DobirnaGraServer.Game
 			await Task.WhenAll(tasks);
 		}
 
-		private LobbyData ConvertToRpcData()
+		private LobbyDataRpcMessage ConvertToRpcData()
 		{
-			return new LobbyData
+			return new LobbyDataRpcMessage
 			{
 				Id = Id,
 				Name = Name,
 				InviteCode = InviteCode,
 				Places = Places.Select(p => p.ConvertToRpcData()).ToList(),
-				Master = new MasterData
+				Master = new MasterDataRpcMessage
 				{
 					UserId = Master?.Id,
 					UserName = Master?.Name,

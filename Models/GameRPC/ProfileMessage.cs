@@ -9,7 +9,7 @@ namespace DobirnaGraServer.Models.GameRPC
 		Logout
 	}
 
-	public readonly struct ProfileData
+	public readonly struct ProfileDataRpcMessage
 	{
 		public required Guid Id { get; init; }
 	}

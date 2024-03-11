@@ -1,8 +1,6 @@
-﻿using DobirnaGraServer.Game;
-
-namespace DobirnaGraServer.Models.GameRPC
+﻿namespace DobirnaGraServer.Models.GameRPC
 {
-	public readonly struct PlayerPlaceData
+	public readonly struct PlayerPlaceDataRpcMessage
 	{
 		public Guid? UserId { get; init; }
 
@@ -15,7 +13,7 @@ namespace DobirnaGraServer.Models.GameRPC
 		public required bool IsOccupied { get; init; }
 	}
 
-	public readonly struct MasterData
+	public readonly struct MasterDataRpcMessage
 	{
 		public Guid? UserId { get; init; }
 
@@ -33,7 +31,7 @@ namespace DobirnaGraServer.Models.GameRPC
 		Updated
 	}
 
-	public readonly struct LobbyData
+	public readonly struct LobbyDataRpcMessage
 	{
 		public required Guid Id { get; init; }
 
@@ -41,8 +39,8 @@ namespace DobirnaGraServer.Models.GameRPC
 
 		public required string InviteCode { get; init; }
 
-		public required IList<PlayerPlaceData> Places { get; init; }
+		public required IList<PlayerPlaceDataRpcMessage> Places { get; init; }
 
-		public required MasterData Master { get; init; }
+		public required MasterDataRpcMessage Master { get; init; }
 	}
 }

@@ -8,9 +8,9 @@ namespace DobirnaGraServer.Game
 
 		public UserProfile? User { get; set; }
 
-		public PlayerPlaceData ConvertToRpcData()
+		public PlayerPlaceDataRpcMessage ConvertToRpcData()
 		{
-			return new PlayerPlaceData
+			return new PlayerPlaceDataRpcMessage
 			{
 				UserId = User?.Id,
 				UserName = User?.Name,

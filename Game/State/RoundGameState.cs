@@ -4,8 +4,14 @@ namespace DobirnaGraServer.Game.State
 {
 	public class RoundGameState : BaseGameState
 	{
+		private Guid? _currentElectioneer;
+
 		public override void OnEnter()
 		{
+			_currentElectioneer = OwnerLobby.Places
+				.OrderBy(p => p.Score)
+				.First(p => p.User != null).User!.Id;
+
 			base.OnEnter();
 		}
 
@@ -25,7 +31,7 @@ namespace DobirnaGraServer.Game.State
 					{ "C++?", [100, 200, 300, 400, 500] },
 					{ "JavaChad", [100, 200, 300, 400, 500, 600, 700] },
 				},
-				Electioneer = OwnerLobby.Users.Last().Id
+				Electioneer = _currentElectioneer
 			};
 		}
 	}

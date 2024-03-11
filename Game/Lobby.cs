@@ -25,15 +25,13 @@ namespace DobirnaGraServer.Game
 
 		public InviteCode InviteCode { get; init; }
 
-		public IReadOnlyList<UserProfile> Users => UserList;
+		private readonly List<UserProfile> _users = [];
+		public IReadOnlyList<UserProfile> Users => _users;
 
-		public IReadOnlyList<PlayerPlace> Places => PlacesList;
+		private readonly List<PlayerPlace> _places;
+		public IReadOnlyList<PlayerPlace> Places => _places;
 
-		private List<UserProfile> UserList { get; init; } = [];
-
-		private List<PlayerPlace> PlacesList { get; init; } = [];
-
-		public UserProfile? Master { get; private set; } = null;
+		private UserProfile? Master { get; set; }
 
 		private StateMachine _gameStateMachine = new();
 
@@ -44,7 +42,7 @@ namespace DobirnaGraServer.Game
 			Id = Guid.NewGuid();
 			InviteCode = new InviteCode(Id);
 
-			PlacesList = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
+			_places = Enumerable.Range(0, initialNumberPlaces).Select(e => new PlayerPlace()).ToList();
 
 			_gameStateMachine.DefineState(new IdleGameState{ OwnerLobby = this });
 			_gameStateMachine.DefineState(new RoundGameState{ OwnerLobby = this });
@@ -73,12 +71,12 @@ namespace DobirnaGraServer.Game
 
 		public bool HasUser(UserProfile user)
 		{
-			return UserList.Any(e => e == user);
+			return _users.Any(e => e == user);
 		}
 
 		private bool FindSeat(UserProfile user, out PlayerPlace? table)
 		{
-			var res = PlacesList.FirstOrDefault(table => table.User == user);
+			var res = _places.FirstOrDefault(table => table.User == user);
 			table = res;
 			return res != null;
 		}
@@ -88,14 +86,14 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (PlacesList.Capacity < number)
+			if (_places.Capacity < number)
 			{
-				PlacesList.Capacity = number;
+				_places.Capacity = number;
 			}
 
-			if (number < PlacesList.Count)
+			if (number < _places.Count)
 			{
-				PlacesList.Sort((l, r) =>
+				_places.Sort((l, r) =>
 				{
 					if (l.User == null && r.User != null)
 						return 1;
@@ -103,11 +101,11 @@ namespace DobirnaGraServer.Game
 						return -1;
 					return 0;
 				});
-				PlacesList.RemoveRange(number, PlacesList.Count - number);
+				_places.RemoveRange(number, _places.Count - number);
 			}
-			else if (number > PlacesList.Count)
+			else if (number > _places.Count)
 			{
-				PlacesList.AddRange(Enumerable.Range(0, number - PlacesList.Count).Select(e => new PlayerPlace()));
+				_places.AddRange(Enumerable.Range(0, number - _places.Count).Select(e => new PlayerPlace()));
 			}
 
 			NotifyLobbyChangedAsync();
@@ -118,10 +116,10 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (index >= PlacesList.Count)
+			if (index >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			PlacesList.RemoveAt(index);
+			_places.RemoveAt(index);
 
 			NotifyLobbyChangedAsync();
 		}
@@ -131,10 +129,10 @@ namespace DobirnaGraServer.Game
 			if (caller != Master)
 				throw new InvalidOperationException("There is no permission to change the score!");
 
-			if (placeIndex >= PlacesList.Count)
+			if (placeIndex >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			PlacesList[placeIndex].Score = newScore;
+			_places[placeIndex].Score = newScore;
 
 			NotifyLobbyChangedAsync();
 		}
@@ -159,15 +157,15 @@ namespace DobirnaGraServer.Game
 			if (!HasUser(user))
 				throw new InvalidOperationException("This user is not in the lobby");
 
-			if(index >= PlacesList.Count)
+			if(index >= _places.Count)
 				throw new InvalidOperationException("There's no such seat.");
 
-			if (PlacesList[index].User != null)
+			if (_places[index].User != null)
 				throw new InvalidOperationException("The seat is already taken!");
 
 			UnseatImpl(user, true);
 
-			PlacesList[index].User = user;
+			_places[index].User = user;
 
 			NotifyLobbyChangedAsync();
 		}
@@ -234,7 +232,7 @@ namespace DobirnaGraServer.Game
 			if (user.CurrentLobby is {} currentLobby)
 				throw new InvalidOperationException($"the user is already in lobby: {currentLobby.Name} ({currentLobby.Id})");
 
-			UserList.Add(user);
+			_users.Add(user);
 			user.CurrentLobby = this;
 
 			await _hubContext.Clients.Client(user.ConnectionId)
@@ -258,7 +256,7 @@ namespace DobirnaGraServer.Game
 		{
 			UnseatImpl(user, true);
 
-			UserList.Remove(user);
+			_users.Remove(user);
 			user.CurrentLobby = null;
 
 			await _hubContext.Groups.RemoveFromGroupAsync(user.ConnectionId, Id.ToString(), ct);
@@ -280,10 +278,10 @@ namespace DobirnaGraServer.Game
 
 		public async Task KickAllUsersAsync(CancellationToken ct = default)
 		{
-			if (UserList.Count == 0)
+			if (_users.Count == 0)
 				return;
 
-			var users = UserList.ToArray();
+			var users = _users.ToArray();
 
 			var tasks = users.Select((u) => LeaveUserExtAsync(u, true, ct));
 

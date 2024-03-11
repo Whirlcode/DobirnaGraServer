@@ -26,9 +26,9 @@ namespace DobirnaGraServer.Game.State
 			OwnerLobby.OnUserChanged -= OnUserChanged;
 		}
 
-		public override BaseStateData GetStateData()
+		public override BaseStateDataRpcMessage GetStateData()
 		{
-			return new IdleStateData()
+			return new IdleStateDataRpcMessageRpcMessage()
 			{
 				ReadyUsers = ReadyUsers.Select(r => r.Id).ToList()
 			};

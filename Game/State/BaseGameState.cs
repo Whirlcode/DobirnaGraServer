@@ -12,7 +12,7 @@ namespace DobirnaGraServer.Game.State
 
 		void OnExit();
 
-		BaseStateData GetStateData();
+		BaseStateDataRpcMessage GetStateData();
 	}
 
 	public abstract class BaseGameState : IState
@@ -31,7 +31,7 @@ namespace DobirnaGraServer.Game.State
 			
 		}
 
-		public abstract BaseStateData GetStateData();
+		public abstract BaseStateDataRpcMessage GetStateData();
 
 		protected void NotifyStateChanged()
 		{

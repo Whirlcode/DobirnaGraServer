@@ -10,21 +10,21 @@ namespace DobirnaGraServer.Models.GameRPC
 
 
 	[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
-	[JsonDerivedType(typeof(BaseStateData), typeDiscriminator: "base")]
-	[JsonDerivedType(typeof(IdleStateData), typeDiscriminator: "idle")]
-	[JsonDerivedType(typeof(IdleStateData), typeDiscriminator: "round")]
-	public class BaseStateData(string type)
+	[JsonDerivedType(typeof(BaseStateDataRpcMessage), typeDiscriminator: "base")]
+	[JsonDerivedType(typeof(IdleStateDataRpcMessageRpcMessage), typeDiscriminator: "idle")]
+	[JsonDerivedType(typeof(IdleStateDataRpcMessageRpcMessage), typeDiscriminator: "round")]
+	public class BaseStateDataRpcMessage(string type)
 	{
 		public string Type { get; init; } = type; // hack for .NET 8, because SignalR not support JsonPolymorphic
 	}
 
-	public class IdleStateData() : BaseStateData("idle")
+	public class IdleStateDataRpcMessageRpcMessage() : BaseStateDataRpcMessage("idle")
 	{
 		public required List<Guid> ReadyUsers { get; init; }
 	}
 
 
-	public class RoundStateData() : BaseStateData("round")
+	public class RoundStateDataRpcMessageRpcMessage() : BaseStateDataRpcMessage("round")
 	{
 		public required Dictionary<string, List<int>> Questions;
 

@@ -14,9 +14,9 @@ namespace DobirnaGraServer.Game.State
 			base.OnExit();
 		}
 
-		public override BaseStateData GetStateData()
+		public override BaseStateDataRpcMessage GetStateData()
 		{
-			return new RoundStateData
+			return new RoundStateDataRpcMessageRpcMessage
 			{
 				Questions = new()
 				{

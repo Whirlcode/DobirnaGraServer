@@ -2,11 +2,10 @@
 using DobirnaGraServer.Hubs;
 using DobirnaGraServer.Models.GameRPC;
 using Microsoft.AspNetCore.SignalR;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DobirnaGraServer.Game
 {
-	public sealed class Lobby : ILobby, IDisposable, IAsyncDisposable
+	public sealed class Lobby : IDisposable, IAsyncDisposable
 	{
 		public enum UserAction
 		{
@@ -14,7 +13,7 @@ namespace DobirnaGraServer.Game
 			Leaved
 		}
 
-		public delegate void EventUserChanged(Lobby lobby, IProfile profile, UserAction action);
+		public delegate void EventUserChanged(Lobby lobby, UserProfile profile, UserAction action);
 
 		public event EventUserChanged? OnUserChanged;
 
@@ -26,15 +25,15 @@ namespace DobirnaGraServer.Game
 
 		public InviteCode InviteCode { get; init; }
 
-		public IEnumerable<IProfile> Users => UserList;
+		public IReadOnlyList<UserProfile> Users => UserList;
 
-		public IEnumerable<IPlace> Places => PlacesList;
+		public IReadOnlyList<PlayerPlace> Places => PlacesList;
 
 		private List<UserProfile> UserList { get; init; } = [];
 
 		private List<PlayerPlace> PlacesList { get; init; } = [];
 
-		public IProfile? Master { get; private set; } = null;
+		public UserProfile? Master { get; private set; } = null;
 
 		private StateMachine _gameStateMachine = new();
 

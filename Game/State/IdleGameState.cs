@@ -6,7 +6,7 @@ namespace DobirnaGraServer.Game.State
 	{
 		public event StateEvent? OnStartGame;
 
-		private HashSet<IProfile> ReadyUsers { get; init; } = new();
+		private HashSet<UserProfile> ReadyUsers { get; init; } = new();
 
 		public override void OnEnter()
 		{
@@ -34,7 +34,7 @@ namespace DobirnaGraServer.Game.State
 			};
 		}
 
-		public void ToggleReady(IProfile caller)
+		public void ToggleReady(UserProfile caller)
 		{
 			if (ReadyUsers.Contains(caller))
 			{
@@ -53,7 +53,7 @@ namespace DobirnaGraServer.Game.State
 			OnStartGame?.Invoke();
 		}
 
-		private void OnUserChanged(Lobby lobby, IProfile profile, Lobby.UserAction action)
+		private void OnUserChanged(Lobby lobby, UserProfile profile, Lobby.UserAction action)
 		{
 			if (action == Lobby.UserAction.Leaved)
 			{

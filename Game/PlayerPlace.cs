@@ -2,11 +2,11 @@
 
 namespace DobirnaGraServer.Game
 {
-	public class PlayerPlace : IPlace
+	public class PlayerPlace 
 	{
 		public int Score { get; set; }
 
-		public IProfile? User { get; set; }
+		public UserProfile? User { get; set; }
 
 		public PlayerPlaceData ConvertToRpcData()
 		{

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DobirnaGraServer.Game
 {
-	public class UserProfile(IHubContext<GameHub, IGameClient> hubContext) : IProfile
+	public class UserProfile(IHubContext<GameHub, IGameClient> hubContext)
 	{
 		public delegate void OnProfileChangedEvent();
 

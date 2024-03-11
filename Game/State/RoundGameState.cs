@@ -10,7 +10,7 @@ namespace DobirnaGraServer.Game.State
 		{
 			_currentElectioneer = OwnerLobby.Places
 				.OrderBy(p => p.Score)
-				.First(p => p.User != null).User!.Id;
+				.FirstOrDefault(p => p.User != null)?.User?.Id;
 
 			base.OnEnter();
 		}

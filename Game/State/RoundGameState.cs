@@ -30,6 +30,7 @@ namespace DobirnaGraServer.Game.State
 					{ "Music", [100, 200, 300, 400, 500] },
 					{ "C++?", [100, 200, 300, 400, 500] },
 					{ "JavaChad", [100, 200, 300, 400, 500, 600, 700] },
+					{ "Ребусы от ДЛИННОГОСЛОВО", [100, 200, 300, 400, 500, 600, 700] },
 				},
 				Electioneer = _currentElectioneer
 			};
